@@ -1,0 +1,54 @@
+.game {
+
+	display: flex;
+
+	.board {
+
+		.row {
+			display: flex;
+
+			.square {
+				display: block;
+
+				margin: 0.5em;
+				padding: 0;
+				height: 5em;
+				width: 5em;
+
+				.button {
+					font-size: 2em;
+					text-align: center;
+					margin-top: auto;
+					margin-bottom: auto;
+				}
+			}
+
+		}
+	}
+
+	.control {
+
+		padding-left: 0.5em;
+
+		.winner {
+			display: inline;
+		}
+
+		.cancel {
+			display: inline;
+			margin-left: 0.5em;
+			;
+			padding: 0.5em;
+		}
+
+		.history {
+
+			list-style: none;
+
+			.action {
+				display: block;
+				margin: 0.5em;
+			}
+		}
+	}
+}
