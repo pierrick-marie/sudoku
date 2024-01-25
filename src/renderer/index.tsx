@@ -1,12 +1,12 @@
 import { createRoot } from 'react-dom/client';
 // import App from './App';
 
-import TicTacToe from './TicTacToe';
+import Sudoku from './Sudoku';
 
 const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);
 // root.render(<App />);
-root.render(<TicTacToe />);
+root.render(<Sudoku />);
 
 // calling IPC exposed from preload script
 window.electron.ipcRenderer.once('ipc-example', (arg) => {
