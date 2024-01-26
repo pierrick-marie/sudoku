@@ -3,19 +3,22 @@
 import { useState, useEffect } from 'react';
 
 import styles from './sudoku.module.scss';
-// import './sudoku.module.scss';
 
-function changeValue(coord: number, value: number, board: number[]): number[] {
-
-	return board;
+interface GameProps {
+	rows: number[][];
+	tiles: number[][];
+	columns: number[][];
+	values: number[];
 }
 
 export default function Sudoku() {
 
-	const rows: number[][] = [];
-	const tiles: number[][] = [];
-	const columns: number[][] = [];
-	const values: number[] = [];
+	const gameProps: GameProps = {
+		rows: [],
+		tiles: [],
+		columns: [],
+		values: [],
+	};
 
 	// Setup sub arrays
 	let row: number[] = [];
@@ -23,44 +26,48 @@ export default function Sudoku() {
 	let column: number[] = [];
 
 	for (let i = 0; i < 9; i++) {
-		rows.push(row);
+		gameProps.rows.push(row);
 		row = [];
-		tiles.push(tile);
+		gameProps.tiles.push(tile);
 		tile = [];
-		columns.push(column);
+		gameProps.columns.push(column);
 		column = [];
 	}
 
 	let rowId = 0;
 	let tileRow = Math.floor(rowId / 3);
 	let columnId = 0;
+	let rand = 0;
 
-	for (let coord = 1; coord <= 9 * 9; coord++) {
-		values.push(coord);
+	for (let id = 1; id <= 9 * 9; id++) {
+
+		rand = Math.floor(Math.random() * 9) + 1
+
+		gameProps.values.push(rand);
 
 		// rows
-		rows[rowId].push(coord - 1);
+		gameProps.rows[rowId].push(id - 1);
 
 		// tiles
-		if (rows[rowId].length <= 3) {
-			tiles[tileRow * 3].push(coord - 1);
+		if (gameProps.rows[rowId].length <= 3) {
+			gameProps.tiles[tileRow * 3].push(id - 1);
 		} else {
-			if (rows[rowId].length <= 6) {
-				tiles[tileRow * 3 + 1].push(coord - 1);
+			if (gameProps.rows[rowId].length <= 6) {
+				gameProps.tiles[tileRow * 3 + 1].push(id - 1);
 			} else {
-				if (rows[rowId].length <= 9) {
-					tiles[tileRow * 3 + 2].push(coord - 1);
+				if (gameProps.rows[rowId].length <= 9) {
+					gameProps.tiles[tileRow * 3 + 2].push(id - 1);
 				}
 			}
 		}
 
-		if (coord >= (rowId + 1) * 9) {
+		if (id >= (rowId + 1) * 9) {
 			rowId += 1;
 			tileRow = Math.floor(rowId / 3);
 		}
 
 		// columns
-		columns[columnId].push(coord - 1);
+		gameProps.columns[columnId].push(id - 1);
 		if (columnId < 8) {
 			columnId++;
 		} else {
@@ -68,14 +75,98 @@ export default function Sudoku() {
 		}
 	}
 
-	// const [board, setBoard] = useState<BoardData>(boardData);
+	return (
+		<Game {...gameProps}/>
+	)
+	
+}
 
-	let count = 0;
+function getRowNumber(id: number): number {
+	return Math.trunc(id / 9);
+}
+
+function getColumnNumber(id: number): number {	
+	return id % 9;
+}
+
+function getTileNumber(id: number): number {	
+	return Math.trunc(id / (9 * 3)) * 3 + Math.trunc((id % 9) / 3);
+}
+
+function getRowValues(idRow: number, gameProps: GameProps): number[] {
+	const values: number[] = [];
+
+	gameProps.rows[idRow].forEach((element) => {
+		values.push(gameProps.values[element]);
+	});
+
+	return values;
+}
+
+function getColumnValues(idColumn: number, gameProps: GameProps): number[] {
+	const values: number[] = [];
+
+	gameProps.columns[idColumn].forEach((element) => {
+		values.push(gameProps.values[element]);
+	});
+
+	return values;
+}
+
+function getTileValues(idTile: number, gameProps: GameProps): number[] {
+	const values: number[] = [];
+
+	gameProps.tiles[idTile].forEach((element) => {
+		values.push(gameProps.values[element]);
+	});
+
+	return values;
+}
+
+function availableValues(id: number, gameProps: GameProps): number[] {
+
+	const defaults = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+	const row =  getRowValues(getRowNumber(id), gameProps);
+	const column = getColumnValues(getColumnNumber(id), gameProps);
+	const tile = getTileValues(getTileNumber(id), gameProps);
+	
+	const values = defaults.filter((element) => !row.includes(element) && !column.includes(element) && !tile.includes(element));
+
+	return values;
+}
+
+function Game(gameProps: GameProps) {
+
+	const [displayPopup, setDisplayPopup] = useState<boolean>(false);
+	const [popupData, setPopupData] = useState<any>({message: '', x: 0, y: 0});
+
+	const handleSquareClicked = (id: number, x: number, y: number) => {
+		setDisplayPopup(true);
+
+		let message = availableValues(id, gameProps);
+
+		setPopupData({x, y, message})
+	};
+
+	const handlePopupClicked = () => {
+		setDisplayPopup(false);
+	}
+
+	// const handleGameClicked = () => {
+	// 	console.log('plop');
+	// 	setDisplayPopup(false);
+	// }
 
 	return (
-		<div className={styles.game}>
+		<div
+			className={styles.game}
+			// onClick={handleGameClicked} 
+		>
 
-			<Board rows={rows} values={values} />
+			{displayPopup && (<Popup handlePopupClick={handlePopupClicked} data={popupData} />)}
+
+			<Board rows={gameProps.rows} values={gameProps.values} handleSquareClick={handleSquareClicked} />
 
 			<div className={styles.control}>
 
@@ -100,60 +191,92 @@ export default function Sudoku() {
 }
 
 
+interface PopupProp {
+	handlePopupClick: any;
+	data: {
+		x: number;
+		y: number;
+		message: string;
+	}
+}
+
+function Popup({handlePopupClick, data}: PopupProp) {
+
+	return (
+		<div className={styles.popup}
+			onClick={handlePopupClick}
+			style={{
+				display: 'block',
+				top: `${data.y + 10}px`,
+				left: `${data.x + 10}px`, // Ajoutez un décalage pour le placer à côté de l'élément
+			}}
+		>
+			{data.message}
+		</div>
+	)
+}
+
 interface BoardProps {
 	rows: number[][];
 	values: number[];
+	handleSquareClick: any;
 }
 
-function Board({ rows, values }: BoardProps) {
+function Board({ rows, values, handleSquareClick }: BoardProps) {
 
 	let counter = 0;
 
 	return (
-		<div className={styles.board}>
-			{rows.map((row: number[], index) => {
-				if (counter >= 3) {
-					counter = 0;
-				}
-				counter++;
-				return <Row 
-					coords={row} 
-					values={values} 
-					topBorder={counter == 1}
-					bottomBorder={counter == 3}
-					key={index} />
-			})}
+		<div>
+			<div className={styles.board}>
+				{rows.map((row: number[], index) => {
+					if (counter >= 3) {
+						counter = 0;
+					}
+					counter++;
+					return <Row
+						ids={row}
+						values={values}
+						topBorder={counter == 1}
+						bottomBorder={counter == 3}
+						handleSquareClick={handleSquareClick}
+						key={index} />
+				})}
+			</div>
 		</div>
 	)
 }
 
 interface RowProps {
-	coords: number[];
+	ids: number[];
 	values: number[];
 	topBorder: boolean;
 	bottomBorder: boolean;
-	
+	handleSquareClick: any;
+
 }
 
-function Row({ coords, values, topBorder, bottomBorder }: RowProps) {
+function Row({ ids, values, topBorder, bottomBorder, handleSquareClick }: RowProps) {
 
 	let counter = 0;
 
 	return (
 		<div className={styles.row}>
-			{coords.map((coord: number) => {
+			{ids.map((id: number) => {
 				if (counter >= 3) {
 					counter = 0;
 				}
 				counter++;
 				return (
-					<Square 
-						value={values[coord]}
+					<Square
+						id={id}
+						value={values[id]}
 						leftBorder={counter == 1}
-						rightBorder={counter == 3} 
+						rightBorder={counter == 3}
 						topBorder={topBorder}
 						bottomBorder={bottomBorder}
-						key={values[coord]} />
+						onSquareClick={handleSquareClick}
+						key={values[id]} />
 				)
 			})}
 		</div>
@@ -161,23 +284,26 @@ function Row({ coords, values, topBorder, bottomBorder }: RowProps) {
 }
 
 interface SquareProps {
+	id: number;
 	value: number;
 	leftBorder: boolean;
 	rightBorder: boolean;
 	topBorder: boolean;
 	bottomBorder: boolean;
+	onSquareClick: any;
 }
 
-function Square({ value, leftBorder, rightBorder, topBorder, bottomBorder }: SquareProps) {
-
-	console.log(leftBorder);
+function Square({ id, value, leftBorder, rightBorder, topBorder, bottomBorder, onSquareClick }: SquareProps) {
 
 	return (
-		<div className={`${styles.square} 
+		<div
+			onClick={(event) => onSquareClick(id, event.clientX, event.clientY)}
+			className={`${styles.square} 
 			${topBorder ? styles.borderTop : ''}
 			${bottomBorder ? styles.borderBottom : ''}
 			${rightBorder ? styles.borderRight : ''}
-			${leftBorder ? styles.borderLeft : ''}`}>
+			${leftBorder ? styles.borderLeft : ''}`}
+		>
 			<p>{value}</p>
 		</div>
 	)
