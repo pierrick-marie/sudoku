@@ -139,24 +139,26 @@ function availableValues(id: number, gameProps: GameProps): number[] {
 function Game(gameProps: GameProps) {
 
 	const [displayPopup, setDisplayPopup] = useState<boolean>(false);
+	const [selectedSquare, setSelectedSquare] = useState<number>(-1);
 	const [popupData, setPopupData] = useState<any>({message: '', x: 0, y: 0});
 
 	const handleSquareClicked = (id: number, x: number, y: number) => {
-		setDisplayPopup(true);
-
-		let message = availableValues(id, gameProps);
-
-		setPopupData({x, y, message})
+		
+		let values = availableValues(id, gameProps);
+		
+		setDisplayPopup(values.length > 0);
+		setPopupData({x, y, values})
+		setSelectedSquare(id);
 	};
 
 	const handlePopupClicked = () => {
 		setDisplayPopup(false);
 	}
 
-	// const handleGameClicked = () => {
-	// 	console.log('plop');
-	// 	setDisplayPopup(false);
-	// }
+	const handlePopupValueClicked = (value: number) => {
+		gameProps.values[selectedSquare] = value;
+		setDisplayPopup(false);
+	}
 
 	return (
 		<div
@@ -164,7 +166,7 @@ function Game(gameProps: GameProps) {
 			// onClick={handleGameClicked} 
 		>
 
-			{displayPopup && (<Popup handlePopupClick={handlePopupClicked} data={popupData} />)}
+			{displayPopup && (<Popup handlePopupClick={handlePopupClicked} handleValueClick={handlePopupValueClicked} data={popupData} />)}
 
 			<Board rows={gameProps.rows} values={gameProps.values} handleSquareClick={handleSquareClicked} />
 
@@ -193,25 +195,32 @@ function Game(gameProps: GameProps) {
 
 interface PopupProp {
 	handlePopupClick: any;
+	handleValueClick: any;
 	data: {
 		x: number;
 		y: number;
-		message: string;
+		values: number[];
 	}
 }
 
-function Popup({handlePopupClick, data}: PopupProp) {
+function Popup({handlePopupClick, handleValueClick, data}: PopupProp) {
 
 	return (
 		<div className={styles.popup}
 			onClick={handlePopupClick}
 			style={{
-				display: 'block',
+				display: 'flex',
 				top: `${data.y + 10}px`,
 				left: `${data.x + 10}px`, // Ajoutez un décalage pour le placer à côté de l'élément
 			}}
 		>
-			{data.message}
+			{data.values.map((value: number, index) => {
+				return ( 
+					<p onClick={() => {handleValueClick(value)}} key={index}>
+						{value}
+					</p>
+				)
+			})}
 		</div>
 	)
 }
@@ -276,7 +285,7 @@ function Row({ ids, values, topBorder, bottomBorder, handleSquareClick }: RowPro
 						topBorder={topBorder}
 						bottomBorder={bottomBorder}
 						onSquareClick={handleSquareClick}
-						key={values[id]} />
+						key={id} />
 				)
 			})}
 		</div>

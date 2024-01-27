@@ -11,6 +11,20 @@
 		padding: 10px;
 		background-color: lightgray;
 		cursor: pointer;
+		border-radius: 5px;
+
+		p {
+			margin: 0.2em;
+			padding: 0.3em;
+			border: 1px solid black;
+			border-radius: 5px;
+		}
+
+		p:hover {
+			background-color: black;
+			color: lightgray;
+			transition-duration: 300ms;
+		}
 	}
 
 	.board {
