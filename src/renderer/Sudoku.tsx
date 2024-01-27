@@ -1,23 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 import styles from './sudoku.module.scss';
 
-interface GameProps {
+enum SquareStatus {
+	Default,	// User can not change its value
+	Writable,	// user can change its value (empty when game start) 
+	Filled,	// User has changed its value (may be ok, or not ;)
+}
+
+interface Square {
+	value: number;
+	status: SquareStatus;
+}
+
+interface Board {
 	rows: number[][];
 	tiles: number[][];
 	columns: number[][];
-	values: number[];
+	squares: Square[];
 }
 
 export default function Sudoku() {
 
-	const gameProps: GameProps = {
+	const board: Board = {
 		rows: [],
 		tiles: [],
 		columns: [],
-		values: [],
+		squares: [],
 	};
 
 	// Setup sub arrays
@@ -26,11 +37,11 @@ export default function Sudoku() {
 	let column: number[] = [];
 
 	for (let i = 0; i < 9; i++) {
-		gameProps.rows.push(row);
+		board.rows.push(row);
 		row = [];
-		gameProps.tiles.push(tile);
+		board.tiles.push(tile);
 		tile = [];
-		gameProps.columns.push(column);
+		board.columns.push(column);
 		column = [];
 	}
 
@@ -41,22 +52,22 @@ export default function Sudoku() {
 
 	for (let id = 1; id <= 9 * 9; id++) {
 
-		rand = Math.floor(Math.random() * 9) + 1
+		rand = Math.floor(Math.random() * 9);
 
-		gameProps.values.push(rand);
+		board.squares.push(rand === 0 ? {value: 0, status: SquareStatus.Writable} : {value: rand, status: SquareStatus.Default});
 
 		// rows
-		gameProps.rows[rowId].push(id - 1);
+		board.rows[rowId].push(id - 1);
 
 		// tiles
-		if (gameProps.rows[rowId].length <= 3) {
-			gameProps.tiles[tileRow * 3].push(id - 1);
+		if (board.rows[rowId].length <= 3) {
+			board.tiles[tileRow * 3].push(id - 1);
 		} else {
-			if (gameProps.rows[rowId].length <= 6) {
-				gameProps.tiles[tileRow * 3 + 1].push(id - 1);
+			if (board.rows[rowId].length <= 6) {
+				board.tiles[tileRow * 3 + 1].push(id - 1);
 			} else {
-				if (gameProps.rows[rowId].length <= 9) {
-					gameProps.tiles[tileRow * 3 + 2].push(id - 1);
+				if (board.rows[rowId].length <= 9) {
+					board.tiles[tileRow * 3 + 2].push(id - 1);
 				}
 			}
 		}
@@ -67,7 +78,7 @@ export default function Sudoku() {
 		}
 
 		// columns
-		gameProps.columns[columnId].push(id - 1);
+		board.columns[columnId].push(id - 1);
 		if (columnId < 8) {
 			columnId++;
 		} else {
@@ -76,7 +87,7 @@ export default function Sudoku() {
 	}
 
 	return (
-		<Game {...gameProps}/>
+		<Game {...board}/>
 	)
 	
 }
@@ -93,50 +104,50 @@ function getTileNumber(id: number): number {
 	return Math.trunc(id / (9 * 3)) * 3 + Math.trunc((id % 9) / 3);
 }
 
-function getRowValues(idRow: number, gameProps: GameProps): number[] {
+function getRowValues(idRow: number, board: Board): number[] {
 	const values: number[] = [];
 
-	gameProps.rows[idRow].forEach((element) => {
-		values.push(gameProps.values[element]);
+	board.rows[idRow].forEach((element) => {
+		values.push(board.squares[element].value);
 	});
 
 	return values;
 }
 
-function getColumnValues(idColumn: number, gameProps: GameProps): number[] {
+function getColumnValues(idColumn: number, board: Board): number[] {
 	const values: number[] = [];
 
-	gameProps.columns[idColumn].forEach((element) => {
-		values.push(gameProps.values[element]);
+	board.columns[idColumn].forEach((element) => {
+		values.push(board.squares[element].value);
 	});
 
 	return values;
 }
 
-function getTileValues(idTile: number, gameProps: GameProps): number[] {
+function getTileValues(idTile: number, board: Board): number[] {
 	const values: number[] = [];
 
-	gameProps.tiles[idTile].forEach((element) => {
-		values.push(gameProps.values[element]);
+	board.tiles[idTile].forEach((element) => {
+		values.push(board.squares[element].value);
 	});
 
 	return values;
 }
 
-function availableValues(id: number, gameProps: GameProps): number[] {
+function availableValues(id: number, board: Board): number[] {
 
 	const defaults = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-	const row =  getRowValues(getRowNumber(id), gameProps);
-	const column = getColumnValues(getColumnNumber(id), gameProps);
-	const tile = getTileValues(getTileNumber(id), gameProps);
+	const row =  getRowValues(getRowNumber(id), board);
+	const column = getColumnValues(getColumnNumber(id), board);
+	const tile = getTileValues(getTileNumber(id), board);
 	
 	const values = defaults.filter((element) => !row.includes(element) && !column.includes(element) && !tile.includes(element));
 
 	return values;
 }
 
-function Game(gameProps: GameProps) {
+function Game(board: Board) {
 
 	const [displayPopup, setDisplayPopup] = useState<boolean>(false);
 	const [selectedSquare, setSelectedSquare] = useState<number>(-1);
@@ -144,7 +155,7 @@ function Game(gameProps: GameProps) {
 
 	const handleSquareClicked = (id: number, x: number, y: number) => {
 		
-		let values = availableValues(id, gameProps);
+		let values = availableValues(id, board);
 		
 		setDisplayPopup(values.length > 0);
 		setPopupData({x, y, values})
@@ -156,7 +167,8 @@ function Game(gameProps: GameProps) {
 	}
 
 	const handlePopupValueClicked = (value: number) => {
-		gameProps.values[selectedSquare] = value;
+		board.squares[selectedSquare].value = value;
+		board.squares[selectedSquare].status = SquareStatus.Filled;
 		setDisplayPopup(false);
 	}
 
@@ -168,7 +180,7 @@ function Game(gameProps: GameProps) {
 
 			{displayPopup && (<Popup handlePopupClick={handlePopupClicked} handleValueClick={handlePopupValueClicked} data={popupData} />)}
 
-			<Board rows={gameProps.rows} values={gameProps.values} handleSquareClick={handleSquareClicked} />
+			<Board rows={board.rows} squares={board.squares} handleSquareClick={handleSquareClicked} />
 
 			<div className={styles.control}>
 
@@ -194,16 +206,16 @@ function Game(gameProps: GameProps) {
 
 
 interface PopupProp {
-	handlePopupClick: any;
-	handleValueClick: any;
 	data: {
 		x: number;
 		y: number;
 		values: number[];
 	}
+	handlePopupClick: any;
+	handleValueClick: any;
 }
 
-function Popup({handlePopupClick, handleValueClick, data}: PopupProp) {
+function Popup({data, handlePopupClick, handleValueClick}: PopupProp) {
 
 	return (
 		<div className={styles.popup}
@@ -227,11 +239,11 @@ function Popup({handlePopupClick, handleValueClick, data}: PopupProp) {
 
 interface BoardProps {
 	rows: number[][];
-	values: number[];
+	squares: Square[];
 	handleSquareClick: any;
 }
 
-function Board({ rows, values, handleSquareClick }: BoardProps) {
+function Board({ rows, squares, handleSquareClick }: BoardProps) {
 
 	let counter = 0;
 
@@ -245,7 +257,7 @@ function Board({ rows, values, handleSquareClick }: BoardProps) {
 					counter++;
 					return <Row
 						ids={row}
-						values={values}
+						squares={squares}
 						topBorder={counter == 1}
 						bottomBorder={counter == 3}
 						handleSquareClick={handleSquareClick}
@@ -258,14 +270,14 @@ function Board({ rows, values, handleSquareClick }: BoardProps) {
 
 interface RowProps {
 	ids: number[];
-	values: number[];
+	squares: Square[];
 	topBorder: boolean;
 	bottomBorder: boolean;
 	handleSquareClick: any;
 
 }
 
-function Row({ ids, values, topBorder, bottomBorder, handleSquareClick }: RowProps) {
+function Row({ ids, squares, topBorder, bottomBorder, handleSquareClick }: RowProps) {
 
 	let counter = 0;
 
@@ -279,7 +291,7 @@ function Row({ ids, values, topBorder, bottomBorder, handleSquareClick }: RowPro
 				return (
 					<Square
 						id={id}
-						value={values[id]}
+						square={squares[id]}
 						leftBorder={counter == 1}
 						rightBorder={counter == 3}
 						topBorder={topBorder}
@@ -292,9 +304,11 @@ function Row({ ids, values, topBorder, bottomBorder, handleSquareClick }: RowPro
 	)
 }
 
+
+
 interface SquareProps {
 	id: number;
-	value: number;
+	square: Square;
 	leftBorder: boolean;
 	rightBorder: boolean;
 	topBorder: boolean;
@@ -302,18 +316,23 @@ interface SquareProps {
 	onSquareClick: any;
 }
 
-function Square({ id, value, leftBorder, rightBorder, topBorder, bottomBorder, onSquareClick }: SquareProps) {
+function Square({ id, square, leftBorder, rightBorder, topBorder, bottomBorder, onSquareClick }: SquareProps) {
 
 	return (
 		<div
-			onClick={(event) => onSquareClick(id, event.clientX, event.clientY)}
-			className={`${styles.square} 
-			${topBorder ? styles.borderTop : ''}
-			${bottomBorder ? styles.borderBottom : ''}
-			${rightBorder ? styles.borderRight : ''}
-			${leftBorder ? styles.borderLeft : ''}`}
+			onClick={(event) => {if(square.status != SquareStatus.Default) {onSquareClick(id, event.clientX, event.clientY)}}}
+			className={`
+				${styles.square} 
+				${topBorder ? styles.borderTop : ''}
+				${bottomBorder ? styles.borderBottom : ''}
+				${rightBorder ? styles.borderRight : ''}
+				${leftBorder ? styles.borderLeft : ''}
+				${square.status === SquareStatus.Default ? styles.default : 
+					square.status === SquareStatus.Writable ? styles.writable : 
+					styles.filled}
+			`}
 		>
-			<p>{value}</p>
+			<p>{square.value === 0 ? '' : square.value}</p>
 		</div>
 	)
 }
