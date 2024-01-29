@@ -4,149 +4,13 @@ import { useState } from 'react';
 
 import styles from './sudoku.module.scss';
 
-const EMPTY_SQUARE_VALUE = -1;
-
-enum SquareStatus {
-	Default,	// User can not change its value
-	Writable,	// user can change its value (empty when game start) 
-	Filled,	// User has changed its value (may be ok, or not ;)
-}
-
-interface Square {
-	value: number;
-	status: SquareStatus;
-}
-
-interface Board {
-	rows: number[][];
-	tiles: number[][];
-	columns: number[][];
-	squares: Square[];
-}
+import {Utils, Board, SquareStatus, Square, EMPTY_SQUARE_VALUE} from './Utils';
 
 export default function Sudoku() {
 
-	const board: Board = {
-		rows: [],
-		tiles: [],
-		columns: [],
-		squares: [],
-	};
-
-	// Setup sub arrays
-	let row: number[] = [];
-	let tile: number[] = [];
-	let column: number[] = [];
-
-	for (let i = 0; i < 9; i++) {
-		board.rows.push(row);
-		row = [];
-		board.tiles.push(tile);
-		tile = [];
-		board.columns.push(column);
-		column = [];
-	}
-
-	let rowId = 0;
-	let tileRow = Math.floor(rowId / 3);
-	let columnId = 0;
-	let rand = 0;
-
-	for (let id = 1; id <= 9 * 9; id++) {
-
-		rand = Math.floor(Math.random() * 9);
-
-		board.squares.push(rand === 0 ? {value: EMPTY_SQUARE_VALUE, status: SquareStatus.Writable} : {value: rand, status: SquareStatus.Default});
-
-		// rows
-		board.rows[rowId].push(id - 1);
-
-		// tiles
-		if (board.rows[rowId].length <= 3) {
-			board.tiles[tileRow * 3].push(id - 1);
-		} else {
-			if (board.rows[rowId].length <= 6) {
-				board.tiles[tileRow * 3 + 1].push(id - 1);
-			} else {
-				if (board.rows[rowId].length <= 9) {
-					board.tiles[tileRow * 3 + 2].push(id - 1);
-				}
-			}
-		}
-
-		if (id >= (rowId + 1) * 9) {
-			rowId += 1;
-			tileRow = Math.floor(rowId / 3);
-		}
-
-		// columns
-		board.columns[columnId].push(id - 1);
-		if (columnId < 8) {
-			columnId++;
-		} else {
-			columnId = 0;
-		}
-	}
-
 	return (
-		<Game {...board}/>
+		<Game {...Utils.setupBoard()}/>
 	)
-	
-}
-
-function getRowNumber(id: number): number {
-	return Math.trunc(id / 9);
-}
-
-function getColumnNumber(id: number): number {	
-	return id % 9;
-}
-
-function getTileNumber(id: number): number {	
-	return Math.trunc(id / (9 * 3)) * 3 + Math.trunc((id % 9) / 3);
-}
-
-function getRowValues(idRow: number, board: Board): number[] {
-	const values: number[] = [];
-
-	board.rows[idRow].forEach((element) => {
-		values.push(board.squares[element].value);
-	});
-
-	return values;
-}
-
-function getColumnValues(idColumn: number, board: Board): number[] {
-	const values: number[] = [];
-
-	board.columns[idColumn].forEach((element) => {
-		values.push(board.squares[element].value);
-	});
-
-	return values;
-}
-
-function getTileValues(idTile: number, board: Board): number[] {
-	const values: number[] = [];
-
-	board.tiles[idTile].forEach((element) => {
-		values.push(board.squares[element].value);
-	});
-
-	return values;
-}
-
-function availableValues(id: number, board: Board): number[] {
-
-	const defaults = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-
-	const row =  getRowValues(getRowNumber(id), board);
-	const column = getColumnValues(getColumnNumber(id), board);
-	const tile = getTileValues(getTileNumber(id), board);
-	
-	const values = defaults.filter((element) => !row.includes(element) && !column.includes(element) && !tile.includes(element));
-
-	return values;
 }
 
 function Game(board: Board) {
@@ -157,7 +21,7 @@ function Game(board: Board) {
 
 	const handleSquareClicked = (id: number, x: number, y: number) => {
 		
-		let values = availableValues(id, board);
+		let values = Utils.availableValues(id, board);
 		
 		setDisplayPopup(true);
 		setPopupData({x, y, values})
