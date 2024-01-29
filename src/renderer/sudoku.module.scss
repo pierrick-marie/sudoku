@@ -41,15 +41,9 @@
 				cursor: pointer;
 				margin: 0.1em;
 
-				p {
+				.value {
 					margin: auto;
-				}
-				
-				.button {
-					// text-align: center;
-					font-size: 2em;
-					margin-top: auto;
-					margin-bottom: auto;
+					font-size: 1.5em;
 				}
 			}
 
@@ -82,6 +76,10 @@
 	.control {
 
 		padding-left: 0.5em;
+
+		button {
+			border-radius: 5px;
+		}
 
 		.winner {
 			display: inline;

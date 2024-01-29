@@ -4,6 +4,8 @@ import { useState } from 'react';
 
 import styles from './sudoku.module.scss';
 
+const EMPTY_SQUARE_VALUE = -1;
+
 enum SquareStatus {
 	Default,	// User can not change its value
 	Writable,	// user can change its value (empty when game start) 
@@ -54,7 +56,7 @@ export default function Sudoku() {
 
 		rand = Math.floor(Math.random() * 9);
 
-		board.squares.push(rand === 0 ? {value: 0, status: SquareStatus.Writable} : {value: rand, status: SquareStatus.Default});
+		board.squares.push(rand === 0 ? {value: EMPTY_SQUARE_VALUE, status: SquareStatus.Writable} : {value: rand, status: SquareStatus.Default});
 
 		// rows
 		board.rows[rowId].push(id - 1);
@@ -157,18 +159,25 @@ function Game(board: Board) {
 		
 		let values = availableValues(id, board);
 		
-		setDisplayPopup(values.length > 0);
+		setDisplayPopup(true);
 		setPopupData({x, y, values})
 		setSelectedSquare(id);
 	};
 
 	const handlePopupClicked = () => {
+
 		setDisplayPopup(false);
 	}
 
 	const handlePopupValueClicked = (value: number) => {
+
+		if(EMPTY_SQUARE_VALUE === value) {
+			board.squares[selectedSquare].status = SquareStatus.Writable;	
+		} else {
+			board.squares[selectedSquare].status = SquareStatus.Filled;
+		}
+
 		board.squares[selectedSquare].value = value;
-		board.squares[selectedSquare].status = SquareStatus.Filled;
 		setDisplayPopup(false);
 	}
 
@@ -233,6 +242,7 @@ function Popup({data, handlePopupClick, handleValueClick}: PopupProp) {
 					</p>
 				)
 			})}
+			<p onClick={() => {handleValueClick(EMPTY_SQUARE_VALUE)}}>✖</p>
 		</div>
 	)
 }
@@ -332,7 +342,7 @@ function Square({ id, square, leftBorder, rightBorder, topBorder, bottomBorder, 
 					styles.filled}
 			`}
 		>
-			<p>{square.value === 0 ? '' : square.value}</p>
+			<div className={styles.value}>{square.value === EMPTY_SQUARE_VALUE ? '' : square.value}</div>
 		</div>
 	)
 }
