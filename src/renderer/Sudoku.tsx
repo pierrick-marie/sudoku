@@ -9,15 +9,20 @@ import {Utils, Board, SquareStatus, Square, EMPTY_SQUARE_VALUE} from './Utils';
 export default function Sudoku() {
 
 	return (
-		<Game {...Utils.setupBoard()}/>
+		<Game />
 	)
 }
 
-function Game(board: Board) {
+function Game() {
 
+	const [board, setBoard] = useState<Board>(Utils.setupBoard());
 	const [displayPopup, setDisplayPopup] = useState<boolean>(false);
 	const [selectedSquare, setSelectedSquare] = useState<number>(-1);
 	const [popupData, setPopupData] = useState<any>({message: '', x: 0, y: 0});
+
+	const handleNewGame = () => {
+		setBoard(Utils.setupBoard());
+	}
 
 	const handleSquareClicked = (id: number, x: number, y: number) => {
 		
@@ -29,7 +34,6 @@ function Game(board: Board) {
 	};
 
 	const handlePopupClicked = () => {
-
 		setDisplayPopup(false);
 	}
 
@@ -42,7 +46,6 @@ function Game(board: Board) {
 		}
 
 		board.squares[selectedSquare].value = value;
-		setDisplayPopup(false);
 	}
 
 	return (
@@ -57,15 +60,13 @@ function Game(board: Board) {
 
 			<div className={styles.control}>
 
-				<button className={styles.cancel}
+				{/* <button className={styles.cancel}
 				// onClick={cancelLastMove}
 				>
 					Cancel
-				</button>
+				</button> */}
 
-				<button className={styles.cancel}
-				// onClick={handleNewGame}
-				>
+				<button className={styles.cancel} onClick={handleNewGame} >
 					New game!
 				</button>
 

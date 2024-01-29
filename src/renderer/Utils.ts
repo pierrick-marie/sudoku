@@ -85,7 +85,7 @@ export const Utils = {
 
 		let board = Utils.createEmptyBoard();
 
-		board = Utils.fillBoard(40, board);
+		board = Utils.fillBoard(60, board);
 
 		return board;
 	},
@@ -109,12 +109,7 @@ export const Utils = {
 
 				if (possibleValues.length != 0) {
 					// Get a random value from all possible values for the index
-
-					let plop = Utils.getRandomNumber(0, possibleValues.length - 1);
-
-					rand = possibleValues[plop];
-
-					console.log(`values = ${possibleValues} size = ${possibleValues.length - 1} plop = ${plop} rand = ${rand}`);
+					rand = possibleValues[Utils.getRandomNumber(0, possibleValues.length)];
 
 					// Fill the square with th random value
 					board.squares[index] = { value: rand, status: SquareStatus.Default };
