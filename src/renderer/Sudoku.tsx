@@ -8,13 +8,6 @@ import {Utils, Board, SquareStatus, Square, EMPTY_SQUARE_VALUE} from './Utils';
 
 export default function Sudoku() {
 
-	return (
-		<Game />
-	)
-}
-
-function Game() {
-
 	const [board, setBoard] = useState<Board>(Utils.setupBoard());
 	const [displayPopup, setDisplayPopup] = useState<boolean>(false);
 	const [selectedSquare, setSelectedSquare] = useState<number>(-1);
