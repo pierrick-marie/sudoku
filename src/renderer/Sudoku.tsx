@@ -6,20 +6,22 @@ import styles from './sudoku.module.scss';
 
 import {Utils, Board, SquareStatus, Square, EMPTY_SQUARE_VALUE} from './Utils';
 
+const DIFFICULTY: number = 60;
+
 export default function Sudoku() {
 
-	const [board, setBoard] = useState<Board>(Utils.setupBoard());
+	const [board, setBoard] = useState<Board>(Utils.newBoard(DIFFICULTY));
 	const [displayPopup, setDisplayPopup] = useState<boolean>(false);
 	const [selectedSquare, setSelectedSquare] = useState<number>(-1);
 	const [popupData, setPopupData] = useState<any>({message: '', x: 0, y: 0});
 
 	const handleNewGame = () => {
-		setBoard(Utils.setupBoard());
+		setBoard(Utils.newBoard(DIFFICULTY));
 	}
 
 	const handleSquareClicked = (id: number, x: number, y: number) => {
 		
-		let values = Utils.availableValues(id, board);
+		let values = Utils.getAavailableValues(id, board);
 		
 		setDisplayPopup(true);
 		setPopupData({x, y, values})

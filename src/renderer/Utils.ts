@@ -64,7 +64,7 @@ export const Utils = {
 		return values;
 	},
 
-	availableValues: (id: number, board: Board): number[] => {
+	getAavailableValues: (id: number, board: Board): number[] => {
 
 		const defaults = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -81,11 +81,11 @@ export const Utils = {
 		return Math.floor(Math.random() * max) + min;
 	},
 
-	setupBoard: (): Board => {
+	newBoard: (difficulty: number): Board => {
 
 		let board = Utils.createEmptyBoard();
 
-		board = Utils.fillBoard(60, board);
+		board = Utils.fillBoard(difficulty, board);
 
 		return board;
 	},
@@ -105,7 +105,7 @@ export const Utils = {
 			if (rand > ratio) {
 
 				// Get possible values for the index
-				possibleValues = Utils.availableValues(index, board);
+				possibleValues = Utils.getAavailableValues(index, board);
 
 				if (possibleValues.length != 0) {
 					// Get a random value from all possible values for the index
