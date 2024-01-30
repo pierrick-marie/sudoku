@@ -85,7 +85,7 @@ export const Utils = {
 
 		let board = Utils.createEmptyBoard();
 
-		board = Utils.fillBoardNaiveFunction(difficulty, board);
+		board = Utils.fillBoard(difficulty, board);
 
 		return board;
 	},
@@ -152,31 +152,45 @@ export const Utils = {
 
 	},
 
-	fillBoardNaiveFunction: (nbSquareToFill: number, board: Board): Board => {
+	fillBoard: (nbSquareToFill: number, board: Board): Board => {
 
-		let rand: number = 0;
+		let index: number = 0;
+		let random: number = 0;
 		let possibleValues: number[] = [];
+		let requiredValues: number[] = [];
+		let isOk: boolean = false;
 
-		const ratio = nbSquareToFill / 81;
 
 		// Fill the board with random values
-		for (let index = 0; index < 81; index++) {
+		for (let nbSquareFilled = 0; nbSquareFilled < nbSquareToFill;) {
 
-			rand = Utils.getRandomNumber(1, 10) / 10;
+			// Cherche une case vide
+			while(!isOk) {
+				index = Utils.getRandomNumber(0, 81);
 
-			if (rand > ratio) {
+				// console.log(`index ${index}`);
 
-				// Get possible values for the index
-				possibleValues = Utils.getPossibleValues(index, board);
-
-				if (possibleValues.length != 0) {
-					// Get a random value from all possible values for the index
-					rand = possibleValues[Utils.getRandomNumber(0, possibleValues.length)];
-
-					// Fill the square with th random value
-					board.squares[index] = { value: rand, status: SquareStatus.Default };
-				}
+				isOk = board.squares[index].value === EMPTY_SQUARE_VALUE;
+				// console.log(`isOk ? ${isOk}`);
 			}
+
+			requiredValues = Utils.getRequiredValues(index, board);
+
+			// Si certaines valeurs sont obligatoires
+			if(requiredValues.length > 0) {
+				random = requiredValues[Utils.getRandomNumber(0, requiredValues.length)];
+				board.squares[index] = { value: random, status: SquareStatus.Default };
+			} else {
+				// Sinon remplir avec use valeur possible
+				possibleValues = Utils.getPossibleValues(index, board);
+				random = possibleValues[Utils.getRandomNumber(0, possibleValues.length)];
+				board.squares[index] = { value: random, status: SquareStatus.Default };
+			}
+
+			// Une case est remplie
+			nbSquareFilled++;
+			// Prêt pour chercher une autre case
+			isOk = false;
 		}
 
 		return board;

@@ -6,7 +6,7 @@ import styles from './sudoku.module.scss';
 
 import {Utils, Board, SquareStatus, Square, EMPTY_SQUARE_VALUE} from './Utils';
 
-const DIFFICULTY: number = 60;
+const DIFFICULTY: number = 40;
 
 export default function Sudoku() {
 
@@ -23,8 +23,6 @@ export default function Sudoku() {
 		
 		let values = Utils.getPossibleValues(id, board);
 		
-		console.log(`required values : ${Utils.getRequiredValues(id, board)}`);
-
 		setDisplayPopup(true);
 		setPopupData({x, y, values})
 		setSelectedSquare(id);
