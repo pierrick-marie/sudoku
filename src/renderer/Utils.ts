@@ -22,15 +22,15 @@ export interface Board {
 
 export const Utils = {
 
-	getRowNumber: (id: number): number => {
+	getRowId: (id: number): number => {
 		return Math.trunc(id / 9);
 	},
 
-	getColumnNumber: (id: number): number => {
+	getColumnId: (id: number): number => {
 		return id % 9;
 	},
 
-	getTileNumber: (id: number): number => {
+	getTileId: (id: number): number => {
 		return Math.trunc(id / (9 * 3)) * 3 + Math.trunc((id % 9) / 3);
 	},
 
@@ -64,13 +64,13 @@ export const Utils = {
 		return values;
 	},
 
-	getAavailableValues: (id: number, board: Board): number[] => {
+	getPossibleValues: (id: number, board: Board): number[] => {
 
 		const defaults = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-		const row = Utils.getRowValues(Utils.getRowNumber(id), board);
-		const column = Utils.getColumnValues(Utils.getColumnNumber(id), board);
-		const tile = Utils.getTileValues(Utils.getTileNumber(id), board);
+		const row = Utils.getRowValues(Utils.getRowId(id), board);
+		const column = Utils.getColumnValues(Utils.getColumnId(id), board);
+		const tile = Utils.getTileValues(Utils.getTileId(id), board);
 
 		const values = defaults.filter((element) => !row.includes(element) && !column.includes(element) && !tile.includes(element));
 
@@ -85,12 +85,74 @@ export const Utils = {
 
 		let board = Utils.createEmptyBoard();
 
-		board = Utils.fillBoard(difficulty, board);
+		board = Utils.fillBoardNaiveFunction(difficulty, board);
 
 		return board;
 	},
 
-	fillBoard: (nbSquareToFill: number, board: Board): Board => {
+	/**
+	 * Gets the ids of neighbour row or column for the same tile.
+	 * @param id of a row or a column
+	 * @returns Two ids of neighbour row or column
+	 */
+	getNeighbourIds: (id: number): {id1:number, id2:number} => {
+
+		// Return neighbour on right +1 and +2
+		if([0, 3, 6].includes(id)) {
+			return {id1: id+1, id2: id+2};
+		} else {
+			// Return neighbour on left -1 and right +1
+			if([1, 4, 7].includes(id)) {
+				return {id1: id-1, id2: id+1};
+			} else {
+				// Return neighbour on left -1 and -2
+				return {id1: id-1, id2: id-2};
+			}
+		}
+	},
+
+	getRequiredRowValues: (id: number, board: Board): number[] => {
+
+		const rowId = Utils.getRowId(id);
+		const possibleValues = Utils.getPossibleValues(id, board);
+		const rowNeighbour = Utils.getNeighbourIds(rowId);
+		const valuesOfRowNeighbour1 = Utils.getRowValues(rowNeighbour.id1, board);
+		const valuesOfRowNeighbour2 = Utils.getRowValues(rowNeighbour.id2, board);
+
+		const requiredRowValues = possibleValues.filter((element) => {
+			return valuesOfRowNeighbour1.includes(element) && valuesOfRowNeighbour2.includes(element)
+		})
+
+
+		return requiredRowValues;
+	},
+
+	getRequiredColumnValues: (id: number, board: Board): number[] => {
+
+		const columnId = Utils.getColumnId(id);
+		const possibleValues = Utils.getPossibleValues(id, board);
+		const columnNeighbour = Utils.getNeighbourIds(columnId);
+		const valuesOfColumnNeighbour1 = Utils.getColumnValues(columnNeighbour.id1, board);
+		const valuesOfColumnNeighbour2 = Utils.getColumnValues(columnNeighbour.id2, board);
+
+		const requiredColumnValues = possibleValues.filter((element) => {
+			return valuesOfColumnNeighbour1.includes(element) && valuesOfColumnNeighbour2.includes(element)
+		})
+
+
+		return requiredColumnValues;
+	},
+
+	getRequiredValues: (id: number, board: Board): number[] => {
+
+		// merge arrays required column value and required row value
+		const requiredValues: number[] = [...new Set([...Utils.getRequiredColumnValues(id, board) ,...Utils.getRequiredRowValues(id, board)])].sort()
+		
+		return requiredValues;
+
+	},
+
+	fillBoardNaiveFunction: (nbSquareToFill: number, board: Board): Board => {
 
 		let rand: number = 0;
 		let possibleValues: number[] = [];
@@ -105,7 +167,7 @@ export const Utils = {
 			if (rand > ratio) {
 
 				// Get possible values for the index
-				possibleValues = Utils.getAavailableValues(index, board);
+				possibleValues = Utils.getPossibleValues(index, board);
 
 				if (possibleValues.length != 0) {
 					// Get a random value from all possible values for the index

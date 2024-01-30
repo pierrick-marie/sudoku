@@ -21,8 +21,10 @@ export default function Sudoku() {
 
 	const handleSquareClicked = (id: number, x: number, y: number) => {
 		
-		let values = Utils.getAavailableValues(id, board);
+		let values = Utils.getPossibleValues(id, board);
 		
+		console.log(`required values : ${Utils.getRequiredValues(id, board)}`);
+
 		setDisplayPopup(true);
 		setPopupData({x, y, values})
 		setSelectedSquare(id);
@@ -102,7 +104,7 @@ function Popup({data, handlePopupClick, handleValueClick}: PopupProp) {
 					</p>
 				)
 			})}
-			<p onClick={() => {handleValueClick(EMPTY_SQUARE_VALUE)}}>✖</p>
+			<p className={styles.cancel} onClick={() => {handleValueClick(EMPTY_SQUARE_VALUE)}}>x</p>
 		</div>
 	)
 }
