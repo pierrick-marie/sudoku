@@ -83,185 +83,120 @@ export const Utils = {
 
 	newBoard: (difficulty: number): Board => {
 
+		let board = Utils.createFilledBoard();
+		
+		board = Utils.hideSquares(difficulty, board);
+
+		return board;
+	},
+
+	hideSquares(numberOfSquareToHide: number, board: Board): Board {
+
+		let randomIndex: number = Utils.getRandomNumber(0, 81);
+		const hidedSquareList: number[] = [];
+
+		for(let i = 0; i < numberOfSquareToHide; ) {
+			if(!hidedSquareList.includes(randomIndex)) {
+				board.squares[randomIndex] = { value: EMPTY_SQUARE_VALUE, status: SquareStatus.Writable };
+				hidedSquareList.push(randomIndex);
+				i++;
+			}
+			randomIndex = Utils.getRandomNumber(0, 81);
+		}
+
+		return board;
+	},
+
+	createFilledBoard: (): Board => {
+
 		let board = Utils.createEmptyBoard();
 
-		board = Utils.fillBoard(board);
+		let coords: number[] = [];
 
-		return board;
-	},
+		for (let number = 1; number <= 9; number++) {
 
-	/**
-	 * Gets the ids of neighbour row or column for the same tile.
-	 * @param id of a row or a column
-	 * @returns Two ids of neighbour row or column
-	 */
-	getNeighbourIds: (id: number): { id1: number, id2: number } => {
+			coords = Utils.searchNineCoords(number, board);
 
-		// Return neighbour on right +1 and +2
-		if ([0, 3, 6].includes(id)) {
-			return { id1: id + 1, id2: id + 2 };
-		} else {
-			// Return neighbour on left -1 and right +1
-			if ([1, 4, 7].includes(id)) {
-				return { id1: id - 1, id2: id + 1 };
+			if (9 != coords.length) {
+				number = 0;
+				board = Utils.createEmptyBoard();
 			} else {
-				// Return neighbour on left -1 and -2
-				return { id1: id - 1, id2: id - 2 };
+				coords.forEach((index) => {
+					board = Utils.fillSquare(index, number, board);
+				});
 			}
 		}
-	},
-
-	getRequiredRowValues: (id: number, board: Board): number[] => {
-
-		const rowId = Utils.getRowId(id);
-		const possibleValues = Utils.getPossibleValues(id, board);
-		const rowNeighbour = Utils.getNeighbourIds(rowId);
-		const valuesOfRowNeighbour1 = Utils.getRowValues(rowNeighbour.id1, board);
-		const valuesOfRowNeighbour2 = Utils.getRowValues(rowNeighbour.id2, board);
-
-		const requiredRowValues = possibleValues.filter((element) => {
-			return valuesOfRowNeighbour1.includes(element) && valuesOfRowNeighbour2.includes(element)
-		})
-
-
-		return requiredRowValues;
-	},
-
-	getRequiredColumnValues: (id: number, board: Board): number[] => {
-
-		const columnId = Utils.getColumnId(id);
-		const possibleValues = Utils.getPossibleValues(id, board);
-		const columnNeighbour = Utils.getNeighbourIds(columnId);
-		const valuesOfColumnNeighbour1 = Utils.getColumnValues(columnNeighbour.id1, board);
-		const valuesOfColumnNeighbour2 = Utils.getColumnValues(columnNeighbour.id2, board);
-
-		const requiredColumnValues = possibleValues.filter((element) => {
-			return valuesOfColumnNeighbour1.includes(element) && valuesOfColumnNeighbour2.includes(element)
-		})
-
-
-		return requiredColumnValues;
-	},
-
-	getRequiredValues: (id: number, board: Board): number[] => {
-
-		// merge arrays required column value and required row value
-		const requiredValues: number[] = [...new Set([...Utils.getRequiredColumnValues(id, board), ...Utils.getRequiredRowValues(id, board)])].sort()
-
-		return requiredValues;
-
-	},
-
-	fillBoard: (board: Board): Board => {
-
-		// let counter = 10;
-
-		// while (counter <= 10) {
-			try {
-				for (let number = 1; number <= 9; number++) {
-					[4, 1, 7, 3, 5, 0, 2, 6, 8].forEach((element) => {
-						board = Utils.fillTile(element, number, board);
-
-					});
-				}
-			} catch (error) {
-				console.log(error);
-				return Utils.createEmptyBoard();
-				// counter++;
-			}
-		// }
 
 		return board;
-
-		// return counter >= 10 ? Utils.createEmptyBoard() : board;
 	},
 
-	fillTile: (tileId: number, value: number, board: Board): Board => {
+	searchNineCoords: (value: number, board: Board): number[] => {
 
-		const tile = board.tiles[tileId];
+		// liste des coords à renvoyer
+		const coords: number[] = [];
+		// liste des coords blacklistées
+		const blackList: number[] = [];
+		// Pour chaque coord, la ligne correspondante
+		const rowList: number[] = [];
+		// Pour chaque coord, la tuile correspondante
+		const tileList: number[] = [];
+		// Une colonne dans laquelle recherche une coordonnées
+		let column: number[] = [];
+		// Liste des coords possibles
+		let possibleCoords: number[];
+		// Index aléatoire
+		let randomIndex: number = 0;
+		// Maximum try counter
+		let nbTry: number = 0;
+		// Maximum try 
+		const maxTry: number = 81 - 9 * (value - 1);
 
-		let randomIndex = 0;
+		while (coords.length < 9 && nbTry < maxTry) {
 
-		let possibleIndex: number[] = tile.filter((element) => {
-			return board.squares[element].value === EMPTY_SQUARE_VALUE
-				&& Utils.getPossibleValues(element, board).includes(value);
-		})
+			nbTry++;
 
-		if (0 === possibleIndex.length) {
-			throw new Error(`There is no available square for ${value} in tile ${tileId}`);
+			// Colonne dans laquelle chercher une coord
+			column = board.columns[coords.length];
+
+			// Parcours toutes les coords de la colonne
+			possibleCoords = column.filter((index) => {
+				return (
+					// square est vide  
+					board.squares[index].value === EMPTY_SQUARE_VALUE
+					// square n'est pas blaclisté
+					&& !blackList.includes(index)
+					// square ne correspond pas à une ligne déja prise
+					&& !rowList.includes(Utils.getRowId(index))
+					// square ne correspond pas à une tuile déja prise
+					&& !tileList.includes(Utils.getTileId(index))
+				);
+			});
+
+			// Pas de coord possible pour les autres colonnes 
+			if (0 === possibleCoords.length) {
+				// supprime la dernière coord et la place dans la blaclist
+				let lastCoord = coords.pop();
+				if (lastCoord != undefined) {
+					blackList.push(lastCoord);
+					rowList.pop();
+					tileList.pop();
+				}
+			} else {
+				// Il y a des coord de disponibles
+				// Prend une coord au hasar et l'ajoute dans la liste des coords
+				randomIndex = possibleCoords[Utils.getRandomNumber(0, possibleCoords.length)];
+				coords.push(randomIndex);
+				rowList.push(Utils.getRowId(randomIndex));
+				tileList.push(Utils.getTileId(randomIndex));
+			}
 		}
 
-		randomIndex = possibleIndex[Utils.getRandomNumber(0, possibleIndex.length)];
-
-		return Utils.fillSquare(randomIndex, value, board);
+		return coords;
 	},
 
 	fillSquare: (index: number, squareValue: number, board: Board): Board => {
 
 		board.squares[index] = { value: squareValue, status: SquareStatus.Default };
-
-		return board;
-	},
-
-	fillSquareWithRandomValue: (index: number, board: Board): Board => {
-
-		let possibleValues: number[] = [];
-		let requiredValues: number[] = [];
-		let value = 0;
-
-		requiredValues = Utils.getRequiredValues(index, board);
-		// Si certaines valeurs sont obligatoires, prendre la première
-		if (requiredValues.length > 0) {
-			value = requiredValues[Utils.getRandomNumber(0, requiredValues.length)];
-		} else {
-			// Sinon remplir avec la première valeur possible
-			possibleValues = Utils.getPossibleValues(index, board);
-			value = possibleValues[Utils.getRandomNumber(0, possibleValues.length)];
-		}
-
-		return Utils.fillSquare(index, value, board);
-	},
-
-	randomBoard: (nbSquareToFill: number, board: Board): Board => {
-
-		let index: number = 0;
-		let random: number = 0;
-		let possibleValues: number[] = [];
-		let requiredValues: number[] = [];
-		let isOk: boolean = false;
-
-
-		// Fill the board with random values
-		for (let nbSquareFilled = 0; nbSquareFilled < nbSquareToFill;) {
-
-			// Cherche une case vide
-			while (!isOk) {
-				index = Utils.getRandomNumber(0, 81);
-
-				// console.log(`index ${index}`);
-
-				isOk = board.squares[index].value === EMPTY_SQUARE_VALUE;
-				// console.log(`isOk ? ${isOk}`);
-			}
-
-			requiredValues = Utils.getRequiredValues(index, board);
-
-			// Si certaines valeurs sont obligatoires
-			if (requiredValues.length > 0) {
-				random = requiredValues[Utils.getRandomNumber(0, requiredValues.length)];
-				board.squares[index] = { value: random, status: SquareStatus.Default };
-			} else {
-				// Sinon remplir avec une valeur possible
-				possibleValues = Utils.getPossibleValues(index, board);
-				random = possibleValues[Utils.getRandomNumber(0, possibleValues.length)];
-				board.squares[index] = { value: random, status: SquareStatus.Default };
-			}
-
-			// Une case est remplie
-			nbSquareFilled++;
-			// Prêt pour chercher une autre case
-			isOk = false;
-		}
 
 		return board;
 	},

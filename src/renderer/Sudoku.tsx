@@ -6,7 +6,7 @@ import styles from './sudoku.module.scss';
 
 import {Utils, Board, SquareStatus, Square, EMPTY_SQUARE_VALUE} from './Utils';
 
-const DIFFICULTY: number = 40;
+const DIFFICULTY: number = 20;
 
 export default function Sudoku() {
 
