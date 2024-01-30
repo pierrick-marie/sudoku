@@ -85,7 +85,7 @@ export const Utils = {
 
 		let board = Utils.createEmptyBoard();
 
-		board = Utils.fillBoard(difficulty, board);
+		board = Utils.fillBoard(board);
 
 		return board;
 	},
@@ -95,18 +95,18 @@ export const Utils = {
 	 * @param id of a row or a column
 	 * @returns Two ids of neighbour row or column
 	 */
-	getNeighbourIds: (id: number): {id1:number, id2:number} => {
+	getNeighbourIds: (id: number): { id1: number, id2: number } => {
 
 		// Return neighbour on right +1 and +2
-		if([0, 3, 6].includes(id)) {
-			return {id1: id+1, id2: id+2};
+		if ([0, 3, 6].includes(id)) {
+			return { id1: id + 1, id2: id + 2 };
 		} else {
 			// Return neighbour on left -1 and right +1
-			if([1, 4, 7].includes(id)) {
-				return {id1: id-1, id2: id+1};
+			if ([1, 4, 7].includes(id)) {
+				return { id1: id - 1, id2: id + 1 };
 			} else {
 				// Return neighbour on left -1 and -2
-				return {id1: id-1, id2: id-2};
+				return { id1: id - 1, id2: id - 2 };
 			}
 		}
 	},
@@ -146,13 +146,83 @@ export const Utils = {
 	getRequiredValues: (id: number, board: Board): number[] => {
 
 		// merge arrays required column value and required row value
-		const requiredValues: number[] = [...new Set([...Utils.getRequiredColumnValues(id, board) ,...Utils.getRequiredRowValues(id, board)])].sort()
-		
+		const requiredValues: number[] = [...new Set([...Utils.getRequiredColumnValues(id, board), ...Utils.getRequiredRowValues(id, board)])].sort()
+
 		return requiredValues;
 
 	},
 
-	fillBoard: (nbSquareToFill: number, board: Board): Board => {
+	fillBoard: (board: Board): Board => {
+
+		// let counter = 10;
+
+		// while (counter <= 10) {
+			try {
+				for (let number = 1; number <= 9; number++) {
+					[4, 1, 7, 3, 5, 0, 2, 6, 8].forEach((element) => {
+						board = Utils.fillTile(element, number, board);
+
+					});
+				}
+			} catch (error) {
+				console.log(error);
+				return Utils.createEmptyBoard();
+				// counter++;
+			}
+		// }
+
+		return board;
+
+		// return counter >= 10 ? Utils.createEmptyBoard() : board;
+	},
+
+	fillTile: (tileId: number, value: number, board: Board): Board => {
+
+		const tile = board.tiles[tileId];
+
+		let randomIndex = 0;
+
+		let possibleIndex: number[] = tile.filter((element) => {
+			return board.squares[element].value === EMPTY_SQUARE_VALUE
+				&& Utils.getPossibleValues(element, board).includes(value);
+		})
+
+		if (0 === possibleIndex.length) {
+			throw new Error(`There is no available square for ${value} in tile ${tileId}`);
+		}
+
+		randomIndex = possibleIndex[Utils.getRandomNumber(0, possibleIndex.length)];
+
+		return Utils.fillSquare(randomIndex, value, board);
+	},
+
+	fillSquare: (index: number, squareValue: number, board: Board): Board => {
+
+		board.squares[index] = { value: squareValue, status: SquareStatus.Default };
+
+		return board;
+	},
+
+	fillSquareWithRandomValue: (index: number, board: Board): Board => {
+
+		let possibleValues: number[] = [];
+		let requiredValues: number[] = [];
+		let value = 0;
+
+		requiredValues = Utils.getRequiredValues(index, board);
+		// Si certaines valeurs sont obligatoires, prendre la première
+		if (requiredValues.length > 0) {
+			value = requiredValues[Utils.getRandomNumber(0, requiredValues.length)];
+		} else {
+			// Sinon remplir avec la première valeur possible
+			possibleValues = Utils.getPossibleValues(index, board);
+			value = possibleValues[Utils.getRandomNumber(0, possibleValues.length)];
+		}
+
+		return Utils.fillSquare(index, value, board);
+	},
+
+	randomBoard: (nbSquareToFill: number, board: Board): Board => {
 
 		let index: number = 0;
 		let random: number = 0;
@@ -165,7 +235,7 @@ export const Utils = {
 		for (let nbSquareFilled = 0; nbSquareFilled < nbSquareToFill;) {
 
 			// Cherche une case vide
-			while(!isOk) {
+			while (!isOk) {
 				index = Utils.getRandomNumber(0, 81);
 
 				// console.log(`index ${index}`);
@@ -177,11 +247,11 @@ export const Utils = {
 			requiredValues = Utils.getRequiredValues(index, board);
 
 			// Si certaines valeurs sont obligatoires
-			if(requiredValues.length > 0) {
+			if (requiredValues.length > 0) {
 				random = requiredValues[Utils.getRandomNumber(0, requiredValues.length)];
 				board.squares[index] = { value: random, status: SquareStatus.Default };
 			} else {
-				// Sinon remplir avec use valeur possible
+				// Sinon remplir avec une valeur possible
 				possibleValues = Utils.getPossibleValues(index, board);
 				random = possibleValues[Utils.getRandomNumber(0, possibleValues.length)];
 				board.squares[index] = { value: random, status: SquareStatus.Default };
