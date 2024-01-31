@@ -4,24 +4,24 @@ import { useState } from 'react';
 
 import styles from './sudoku.module.scss';
 
-import {Utils, Board, SquareStatus, Square, EMPTY_SQUARE_VALUE} from './Utils';
+import {Sudoku, Row, Column, Tile, SudokuData, SquareStatus, SquareData, EMPTY_SQUARE_VALUE} from './utils/CreateSudoku';
 
 const DIFFICULTY: number = 20;
 
-export default function Sudoku() {
+export default function Root() {
 
-	const [board, setBoard] = useState<Board>(Utils.newBoard(DIFFICULTY));
+	const [board, setBoard] = useState<SudokuData>(Sudoku.newSudoku(DIFFICULTY));
 	const [displayPopup, setDisplayPopup] = useState<boolean>(false);
 	const [selectedSquare, setSelectedSquare] = useState<number>(-1);
 	const [popupData, setPopupData] = useState<any>({message: '', x: 0, y: 0});
 
 	const handleNewGame = () => {
-		setBoard(Utils.newBoard(DIFFICULTY));
+		setBoard(Sudoku.newSudoku(DIFFICULTY));
 	}
 
 	const handleSquareClicked = (id: number, x: number, y: number) => {
 		
-		let values = Utils.getPossibleValues(id, board);
+		let values = Sudoku.getPossibleValues(id, board);
 		
 		setDisplayPopup(true);
 		setPopupData({x, y, values})
@@ -108,8 +108,8 @@ function Popup({data, handlePopupClick, handleValueClick}: PopupProp) {
 }
 
 interface BoardProps {
-	rows: number[][];
-	squares: Square[];
+	rows: Row[];
+	squares: SquareData[];
 	handleSquareClick: any;
 }
 
@@ -120,13 +120,13 @@ function Board({ rows, squares, handleSquareClick }: BoardProps) {
 	return (
 		<div>
 			<div className={styles.board}>
-				{rows.map((row: number[], index) => {
+				{rows.map((myRow: Row, index) => {
 					if (counter >= 3) {
 						counter = 0;
 					}
 					counter++;
 					return <Row
-						ids={row}
+						row={myRow}
 						squares={squares}
 						topBorder={counter == 1}
 						bottomBorder={counter == 3}
@@ -139,35 +139,35 @@ function Board({ rows, squares, handleSquareClick }: BoardProps) {
 }
 
 interface RowProps {
-	ids: number[];
-	squares: Square[];
+	row: Row;
+	squares: SquareData[];
 	topBorder: boolean;
 	bottomBorder: boolean;
 	handleSquareClick: any;
 
 }
 
-function Row({ ids, squares, topBorder, bottomBorder, handleSquareClick }: RowProps) {
+function Row({ row, squares, topBorder, bottomBorder, handleSquareClick }: RowProps) {
 
 	let counter = 0;
 
 	return (
 		<div className={styles.row}>
-			{ids.map((id: number) => {
+			{row.coords.map((myCoord: number) => {
 				if (counter >= 3) {
 					counter = 0;
 				}
 				counter++;
 				return (
 					<Square
-						id={id}
-						square={squares[id]}
+						coord={myCoord}
+						square={squares[myCoord]}
 						leftBorder={counter == 1}
 						rightBorder={counter == 3}
 						topBorder={topBorder}
 						bottomBorder={bottomBorder}
 						onSquareClick={handleSquareClick}
-						key={id} />
+						key={myCoord} />
 				)
 			})}
 		</div>
@@ -177,8 +177,8 @@ function Row({ ids, squares, topBorder, bottomBorder, handleSquareClick }: RowPr
 
 
 interface SquareProps {
-	id: number;
-	square: Square;
+	coord: number;
+	square: SquareData;
 	leftBorder: boolean;
 	rightBorder: boolean;
 	topBorder: boolean;
@@ -186,11 +186,11 @@ interface SquareProps {
 	onSquareClick: any;
 }
 
-function Square({ id, square, leftBorder, rightBorder, topBorder, bottomBorder, onSquareClick }: SquareProps) {
+function Square({ coord, square, leftBorder, rightBorder, topBorder, bottomBorder, onSquareClick }: SquareProps) {
 
 	return (
 		<div
-			onClick={(event) => {if(square.status != SquareStatus.Default) {onSquareClick(id, event.clientX, event.clientY)}}}
+			onClick={(event) => {if(square.status != SquareStatus.Default) {onSquareClick(coord, event.clientX, event.clientY)}}}
 			className={`
 				${styles.square} 
 				${topBorder ? styles.borderTop : ''}
