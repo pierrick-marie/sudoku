@@ -2,27 +2,43 @@
 
 import { useState } from 'react';
 
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+import SendIcon from '@mui/icons-material/Send';
+
 import styles from './sudoku.module.scss';
 
 import { Utils, Row, SudokuData, SquareStatus, SquareData, EMPTY_SQUARE_VALUE } from './utils/Data';
 import { Sudoku } from './utils/CreateSudoku';
 import { Resolv } from './utils/ResolvSudoku';
 
-const DIFFICULTY: number = 20;
+const DIFFICULTY_EASY: number = 20;
+const DIFFICULTY_MEDIUM: number = 30;
+const DIFFICULTY_HARD: number = 40;
+const DIFFICULTY_VERY_HARD: number = 50;
 
 export default function Root() {
 
-	const [board, setBoard] = useState<SudokuData>(Sudoku.newSudoku(DIFFICULTY));
 	const [displayPopup, setDisplayPopup] = useState<boolean>(false);
+	const [difficultyLevel, setDifficultyLevel] = useState<number>(DIFFICULTY_EASY);
 	const [youWin, setYouWin] = useState<boolean>(false);
 	const [selectedSquare, setSelectedSquare] = useState<number>(-1);
 	const [popupData, setPopupData] = useState<any>({ message: '', x: 0, y: 0 });
+	const [board, setBoard] = useState<SudokuData>(Sudoku.newSudoku(difficultyLevel));
 
 	const handleNewGame = () => {
 
 		setYouWin(false);
 
-		setBoard(Sudoku.newSudoku(DIFFICULTY));
+		setBoard(Sudoku.newSudoku(difficultyLevel));
+	}
+
+	const handleDifficultyChanged = (event: SelectChangeEvent) => {
+		setDifficultyLevel(+event.target.value);
 	}
 
 	const handleSquareClicked = (id: number, x: number, y: number) => {
@@ -35,7 +51,7 @@ export default function Root() {
 			setPopupData({ x, y, values })
 			setSelectedSquare(id);
 		}
-	};
+	}
 
 	const handlePopupClicked = () => {
 		setDisplayPopup(false);
@@ -57,10 +73,7 @@ export default function Root() {
 	}
 
 	return (
-		<div
-			className={styles.game}
-		// onClick={handleGameClicked} 
-		>
+		<div className={styles.game} >
 
 			{displayPopup && (<Popup handlePopupClick={handlePopupClicked} handleValueClick={handlePopupValueClicked} data={popupData} />)}
 
@@ -70,21 +83,40 @@ export default function Root() {
 
 			<div className={styles.control}>
 
-				{/* <button className={styles.cancel}
-				// onClick={cancelLastMove}
-				>
-					Cancel
-				</button> */}
+				<DifficultyLevel difficulty={difficultyLevel} handleDifficultyChange={handleDifficultyChanged} />
 
-				<button className={styles.cancel} onClick={handleNewGame} >
+				<Button sx={{ m: 1, minWidth: 120 }} variant='outlined' endIcon={<SendIcon />} onClick={handleNewGame} >
 					New game!
-				</button>
+				</Button>
 
-				<ol className={styles.history}>
-					{/* {lastMoves()} */}
-				</ol>
 			</div>
 		</div>
+	)
+}
+
+interface DifficultyProp {
+	difficulty: number;
+	handleDifficultyChange: any;
+}
+
+function DifficultyLevel({difficulty, handleDifficultyChange}: DifficultyProp) {
+
+	return (
+		<FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+			<InputLabel id="difficulty-select-label">Difficulté</InputLabel>
+			<Select
+				labelId="difficulty-select-label"
+				id="difficulty-select"
+				value={difficulty}
+				label="Diffilté"
+				onChange={handleDifficultyChange}
+			>
+				<MenuItem value={DIFFICULTY_EASY}>Facile</MenuItem>
+				<MenuItem value={DIFFICULTY_MEDIUM}>Moyen</MenuItem>
+				<MenuItem value={DIFFICULTY_HARD}>Difficile</MenuItem>
+				<MenuItem value={DIFFICULTY_VERY_HARD}>Très difficile</MenuItem>
+			</Select>
+		</FormControl>
 	)
 }
 
