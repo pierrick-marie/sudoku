@@ -4,8 +4,9 @@ import { useState } from 'react';
 
 import styles from './sudoku.module.scss';
 
-import {Row, Column, Tile, SudokuData, SquareStatus, SquareData, EMPTY_SQUARE_VALUE} from './utils/Data';
-import {Sudoku} from './utils/CreateSudoku';
+import { Utils, Row, SudokuData, SquareStatus, SquareData, EMPTY_SQUARE_VALUE } from './utils/Data';
+import { Sudoku } from './utils/CreateSudoku';
+import { Resolv } from './utils/ResolvSudoku';
 
 const DIFFICULTY: number = 20;
 
@@ -13,20 +14,27 @@ export default function Root() {
 
 	const [board, setBoard] = useState<SudokuData>(Sudoku.newSudoku(DIFFICULTY));
 	const [displayPopup, setDisplayPopup] = useState<boolean>(false);
+	const [youWin, setYouWin] = useState<boolean>(false);
 	const [selectedSquare, setSelectedSquare] = useState<number>(-1);
-	const [popupData, setPopupData] = useState<any>({message: '', x: 0, y: 0});
+	const [popupData, setPopupData] = useState<any>({ message: '', x: 0, y: 0 });
 
 	const handleNewGame = () => {
+
+		setYouWin(false);
+
 		setBoard(Sudoku.newSudoku(DIFFICULTY));
 	}
 
 	const handleSquareClicked = (id: number, x: number, y: number) => {
-		
-		let values = Sudoku.getPossibleValues(id, board);
-		
-		setDisplayPopup(true);
-		setPopupData({x, y, values})
-		setSelectedSquare(id);
+
+		if (!youWin) {
+
+			let values = Utils.getPossibleValues(id, board);
+
+			setDisplayPopup(true);
+			setPopupData({ x, y, values })
+			setSelectedSquare(id);
+		}
 	};
 
 	const handlePopupClicked = () => {
@@ -35,22 +43,28 @@ export default function Root() {
 
 	const handlePopupValueClicked = (value: number) => {
 
-		if(EMPTY_SQUARE_VALUE === value) {
-			board.squares[selectedSquare].status = SquareStatus.Writable;	
+		if (EMPTY_SQUARE_VALUE === value) {
+			board.squares[selectedSquare].status = SquareStatus.Writable;
 		} else {
 			board.squares[selectedSquare].status = SquareStatus.Filled;
 		}
 
 		board.squares[selectedSquare].value = value;
+
+		if (Resolv.isValid(board)) {
+			setYouWin(true);
+		}
 	}
 
 	return (
 		<div
 			className={styles.game}
-			// onClick={handleGameClicked} 
+		// onClick={handleGameClicked} 
 		>
 
 			{displayPopup && (<Popup handlePopupClick={handlePopupClicked} handleValueClick={handlePopupValueClicked} data={popupData} />)}
+
+			{youWin && (<YouWin />)}
 
 			<Board rows={board.rows} squares={board.squares} handleSquareClick={handleSquareClicked} />
 
@@ -74,6 +88,14 @@ export default function Root() {
 	)
 }
 
+function YouWin() {
+
+	return (
+		<div className={styles.youWin}>
+			<p>You Win!</p>
+		</div>
+	)
+}
 
 interface PopupProp {
 	data: {
@@ -85,7 +107,7 @@ interface PopupProp {
 	handleValueClick: any;
 }
 
-function Popup({data, handlePopupClick, handleValueClick}: PopupProp) {
+function Popup({ data, handlePopupClick, handleValueClick }: PopupProp) {
 
 	return (
 		<div className={styles.popup}
@@ -97,13 +119,13 @@ function Popup({data, handlePopupClick, handleValueClick}: PopupProp) {
 			}}
 		>
 			{data.values.map((value: number, index) => {
-				return ( 
-					<p onClick={() => {handleValueClick(value)}} key={index}>
+				return (
+					<p onClick={() => { handleValueClick(value) }} key={index}>
 						{value}
 					</p>
 				)
 			})}
-			<p className={styles.cancel} onClick={() => {handleValueClick(EMPTY_SQUARE_VALUE)}}>x</p>
+			<p className={styles.cancel} onClick={() => { handleValueClick(EMPTY_SQUARE_VALUE) }}>x</p>
 		</div>
 	)
 }
@@ -191,16 +213,16 @@ function Square({ coord, square, leftBorder, rightBorder, topBorder, bottomBorde
 
 	return (
 		<div
-			onClick={(event) => {if(square.status != SquareStatus.Default) {onSquareClick(coord, event.clientX, event.clientY)}}}
+			onClick={(event) => { if (square.status != SquareStatus.Default) { onSquareClick(coord, event.clientX, event.clientY) } }}
 			className={`
 				${styles.square} 
 				${topBorder ? styles.borderTop : ''}
 				${bottomBorder ? styles.borderBottom : ''}
 				${rightBorder ? styles.borderRight : ''}
 				${leftBorder ? styles.borderLeft : ''}
-				${square.status === SquareStatus.Default ? styles.default : 
-					square.status === SquareStatus.Writable ? styles.writable : 
-					styles.filled}
+				${square.status === SquareStatus.Default ? styles.default :
+					square.status === SquareStatus.Writable ? styles.writable :
+						styles.filled}
 			`}
 		>
 			<div className={styles.value}>{square.value === EMPTY_SQUARE_VALUE ? '' : square.value}</div>

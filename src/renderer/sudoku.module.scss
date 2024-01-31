@@ -32,6 +32,18 @@
 		}
 	}
 
+	.youWin {
+		position: absolute;
+
+		left: 140px;
+		top: 150px;
+
+		p {
+			font-size: 5em;
+			font-weight: bold;
+		}
+	}
+
 	.board {
 
 		.row {

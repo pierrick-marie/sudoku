@@ -1,61 +1,6 @@
-import {Row, Column, Tile, SudokuData, SquareStatus, SquareData, EMPTY_SQUARE_VALUE} from './Data';
+import {Utils, Column, SudokuData, SquareStatus, EMPTY_SQUARE_VALUE} from './Data';
 
 export const Sudoku = {
-
-	getRowId: (coord: number): number => {
-		return Math.trunc(coord / 9);
-	},
-
-	getColumnId: (coord: number): number => {
-		return coord % 9;
-	},
-
-	getTileId: (coord: number): number => {
-		return Math.trunc(coord / (9 * 3)) * 3 + Math.trunc((coord % 9) / 3);
-	},
-
-	getRowValues: (rowId: number, sudoku: SudokuData): number[] => {
-		const values: number[] = [];
-
-		sudoku.rows[rowId].coords.forEach((coord: number) => {
-			values.push(sudoku.squares[coord].value);
-		});
-
-		return values;
-	},
-
-	getColumnValues: (columnId: number, sudoku: SudokuData): number[] => {
-		const values: number[] = [];
-
-		sudoku.columns[columnId].coords.forEach((coord) => {
-			values.push(sudoku.squares[coord].value);
-		});
-
-		return values;
-	},
-
-	getTileValues: (tileId: number, sudoku: SudokuData): number[] => {
-		const values: number[] = [];
-
-		sudoku.tiles[tileId].coords.forEach((coord) => {
-			values.push(sudoku.squares[coord].value);
-		});
-
-		return values;
-	},
-
-	getPossibleValues: (coord: number, sudoku: SudokuData): number[] => {
-
-		const defaults = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-
-		const row = Sudoku.getRowValues(Sudoku.getRowId(coord), sudoku);
-		const column = Sudoku.getColumnValues(Sudoku.getColumnId(coord), sudoku);
-		const tile = Sudoku.getTileValues(Sudoku.getTileId(coord), sudoku);
-
-		const values = defaults.filter((element) => !row.includes(element) && !column.includes(element) && !tile.includes(element));
-
-		return values;
-	},
 
 	getRandomNumber: (min: number, max: number): number => {
 		return Math.floor(Math.random() * max) + min;
@@ -63,8 +8,9 @@ export const Sudoku = {
 
 	newSudoku: (difficulty: number): SudokuData => {
 
-		let sudoku = Sudoku.createFilledSudoku();
-		
+		let sudoku = Sudoku.setupEmptySudoku();
+
+		sudoku = Sudoku.newGame(sudoku);
 		sudoku = Sudoku.hideSquares(difficulty, sudoku);
 
 		return sudoku;
@@ -87,22 +33,21 @@ export const Sudoku = {
 		return sudoku;
 	},
 
-	createFilledSudoku: (): SudokuData => {
-
-		let sudoku = Sudoku.createEmptySudoku();
+	newGame: (sudoku: SudokuData): SudokuData => {
 
 		let coords: number[] = [];
 
 		for (let number = 1; number <= 9; number++) {
 
-			coords = Sudoku.searchNineCoords(number, sudoku);
+			coords = Sudoku.searchNineAvailableCoords(number, sudoku);
 
 			if (9 != coords.length) {
 				number = 0;
-				sudoku = Sudoku.createEmptySudoku();
+				sudoku = Sudoku.setupEmptySudoku();
 			} else {
 				coords.forEach((coord) => {
-					sudoku = Sudoku.fillSquare(coord, number, sudoku);
+					sudoku.squares[coord].value = number;
+					sudoku.squares[coord].status = SquareStatus.Default;
 				});
 			}
 		}
@@ -110,7 +55,7 @@ export const Sudoku = {
 		return sudoku;
 	},
 
-	searchNineCoords: (value: number, sudoku: SudokuData): number[] => {
+	searchNineAvailableCoords: (value: number, sudoku: SudokuData): number[] => {
 
 		// liste des coords à renvoyer
 		const coords: number[] = [];
@@ -146,9 +91,9 @@ export const Sudoku = {
 					// square n'est pas blaclisté
 					&& !blackList.includes(coord)
 					// square ne correspond pas à une ligne déja prise
-					&& !rowList.includes(Sudoku.getRowId(coord))
+					&& !rowList.includes(Utils.getRowId(coord))
 					// square ne correspond pas à une tuile déja prise
-					&& !tileList.includes(Sudoku.getTileId(coord))
+					&& !tileList.includes(Utils.getTileId(coord))
 				);
 			});
 
@@ -166,83 +111,61 @@ export const Sudoku = {
 				// Prend une coord au hasar et l'ajoute dans la liste des coords
 				randomCoord = possibleCoords[Sudoku.getRandomNumber(0, possibleCoords.length)];
 				coords.push(randomCoord);
-				rowList.push(Sudoku.getRowId(randomCoord));
-				tileList.push(Sudoku.getTileId(randomCoord));
+				rowList.push(Utils.getRowId(randomCoord));
+				tileList.push(Utils.getTileId(randomCoord));
 			}
 		}
 
 		return coords;
 	},
 
-	fillSquare: (coord: number, squareValue: number, sudoku: SudokuData): SudokuData => {
+	setupEmptySudoku: (): SudokuData => {
 
-		sudoku.squares[coord] = { value: squareValue, status: SquareStatus.Default };
-
-		return sudoku;
-	},
-
-	createEmptySudoku: (): SudokuData => {
-
-		const sudoku: SudokuData = {
-			rows: [],
-			tiles: [],
-			columns: [],
-			squares: [],
-		};
-
-		// Setup sub arrays
-		let row: Row = {coords: []};
-		let tile: Tile = {coords: []};
-		let column: Column = {coords: []};
-
-		for (let i = 0; i < 9; i++) {
-			sudoku.rows.push(row);
-			row = {coords: []};
-			sudoku.tiles.push(tile);
-			tile = {coords: []};
-			sudoku.columns.push(column);
-			column = {coords: []};
-		}
+		let sudoku: SudokuData = Utils.newSudoku();
 
 		let rowId: number = 0;
-		let tileRow: number = Math.floor(rowId / 3);
+		let tileId: number = Math.floor(rowId / 3);
 		let columnId: number = 0;
 
 		let coord: number = 0;
 
 		// Create sudoku: rows, columns and tiles
-		for (coord = 1; coord <= 81; coord++) {
+		for (coord = 0; coord < 9 * 9; coord++) {
 
-			// Default value to fill the sudoku
-			sudoku.squares[coord - 1] = { value: EMPTY_SQUARE_VALUE, status: SquareStatus.Writable };
+			// Rows
+			sudoku.rows[rowId].coords.push(coord);
 
-			// rows
-			sudoku.rows[rowId].coords.push(coord - 1);
-
-			// tiles
+			// Tiles
 			if (sudoku.rows[rowId].coords.length <= 3) {
-				sudoku.tiles[tileRow * 3].coords.push(coord - 1);
+				// Fill first tile
+				sudoku.tiles[tileId * 3].coords.push(coord);
 			} else {
 				if (sudoku.rows[rowId].coords.length <= 6) {
-					sudoku.tiles[tileRow * 3 + 1].coords.push(coord - 1);
+					// Fill second tile
+					sudoku.tiles[tileId * 3 + 1].coords.push(coord);
 				} else {
 					if (sudoku.rows[rowId].coords.length <= 9) {
-						sudoku.tiles[tileRow * 3 + 2].coords.push(coord - 1);
+						// Fill third tile
+						sudoku.tiles[tileId * 3 + 2].coords.push(coord);
 					}
 				}
 			}
 
-			// id of current row and row of current tile
-			if (coord >= (rowId + 1) * 9) {
+			// If 9 coords have been saved
+			if ((coord + 1) >= (rowId + 1) * 9) {
+				// Go to next row
 				rowId += 1;
-				tileRow = Math.floor(rowId / 3);
+				// Update tile id => go to next line of tile ?
+				tileId = Math.floor(rowId / 3);
 			}
 
-			// columns
-			sudoku.columns[columnId].coords.push(coord - 1);
+			// Columns
+			sudoku.columns[columnId].coords.push(coord);
 			if (columnId < 8) {
+				// Go to next column
 				columnId++;
 			} else {
+				// This is the last column, go to the first
 				columnId = 0;
 			}
 		}
