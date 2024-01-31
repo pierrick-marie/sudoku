@@ -4,7 +4,8 @@ import { useState } from 'react';
 
 import styles from './sudoku.module.scss';
 
-import {Sudoku, Row, Column, Tile, SudokuData, SquareStatus, SquareData, EMPTY_SQUARE_VALUE} from './utils/CreateSudoku';
+import {Row, Column, Tile, SudokuData, SquareStatus, SquareData, EMPTY_SQUARE_VALUE} from './utils/Data';
+import {Sudoku} from './utils/CreateSudoku';
 
 const DIFFICULTY: number = 20;
 
