@@ -1,12 +1,15 @@
 export const EMPTY_SQUARE_VALUE: number = -1;
 
+export const SAVE_TOPIC: string = 'save-sudolu';
+export const LOAD_TOPIC: string = 'load-sudolu';
+
 export enum SquareStatus {
 	Default,	// User can not change its value
 	Writable,	// user can change its value (empty when game start) 
 	Filled,	// User has changed its value (may be ok, or not ;)
 }
 
-export interface SquareData {
+export interface Square {
 	value: number;
 	status: SquareStatus;
 }
@@ -23,11 +26,11 @@ export interface Tile {
 	coords: number[];
 }
 
-export interface SudokuData {
+export interface Sudoku {
 	rows: Row[];
 	tiles: Tile[];
 	columns: Column[];
-	squares: SquareData[];
+	squares: Square[];
 }
 
 export const Utils = {
@@ -44,7 +47,7 @@ export const Utils = {
 		return Math.trunc(coord / (9 * 3)) * 3 + Math.trunc((coord % 9) / 3);
 	},
 
-	getRowValues: (rowId: number, sudoku: SudokuData): number[] => {
+	getRowValues: (rowId: number, sudoku: Sudoku): number[] => {
 		const values: number[] = [];
 
 		sudoku.rows[rowId].coords.forEach((coord: number) => {
@@ -54,7 +57,7 @@ export const Utils = {
 		return values;
 	},
 
-	getColumnValues: (columnId: number, sudoku: SudokuData): number[] => {
+	getColumnValues: (columnId: number, sudoku: Sudoku): number[] => {
 		const values: number[] = [];
 
 		sudoku.columns[columnId].coords.forEach((coord) => {
@@ -64,7 +67,7 @@ export const Utils = {
 		return values;
 	},
 
-	getTileValues: (tileId: number, sudoku: SudokuData): number[] => {
+	getTileValues: (tileId: number, sudoku: Sudoku): number[] => {
 		const values: number[] = [];
 
 		sudoku.tiles[tileId].coords.forEach((coord) => {
@@ -74,7 +77,7 @@ export const Utils = {
 		return values;
 	},
 
-	getPossibleValues: (coord: number, sudoku: SudokuData): number[] => {
+	getPossibleValues: (coord: number, sudoku: Sudoku): number[] => {
 
 		const defaults = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -87,9 +90,9 @@ export const Utils = {
 		return values;
 	},
 
-	newSquare: (): SquareData => {
+	newSquare: (): Square => {
 
-		const square: SquareData = { value: EMPTY_SQUARE_VALUE, status: SquareStatus.Writable };
+		const square: Square = { value: EMPTY_SQUARE_VALUE, status: SquareStatus.Writable };
 
 		return square;
 	},
@@ -106,9 +109,9 @@ export const Utils = {
 		return {coords: []};
 	},
 
-	newSudoku: (): SudokuData => {
+	newSudoku: (): Sudoku => {
 		
-		const sudoku: SudokuData = {
+		const sudoku: Sudoku = {
 			rows: [],
 			tiles: [],
 			columns: [],

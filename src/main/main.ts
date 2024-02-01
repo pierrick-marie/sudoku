@@ -18,15 +18,17 @@ import path from 'path';
 import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
-import MenuBuilder from './menu';
+// @boiler-plate-backup
+// import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
-import { SudokuData } from '../renderer/utils/Data';
+import { Sudoku } from '../utils/Data';
 
-const FILE_PATH: string = '~/.config/sudoku.db';
 const OBJECT_NAME: string = 'MySudoku';
-const Datastore = require('nedb');
-const DB = new Datastore({ filename: FILE_PATH, autoload: true });
+
+import {LOAD_TOPIC, SAVE_TOPIC} from '../utils/Data'; 
+import { electron } from 'process';
+const FILE_PATH: string = '.config/sudoku.db';
 
 class AppUpdater {
 	constructor() {
@@ -40,12 +42,14 @@ let mainWindow: BrowserWindow | null = null;
 
 interface MySudoku {
 	name: string;
-	data: SudokuData;
+	data: Sudoku;
 }
 
 /**
  * Save Sudoku with NeDB
  */
+/**
+ // @boiler-plate-backup
 ipcMain.on('save-sudoku', async (event, sudoku: SudokuData) => {
 	// const msgTemplate = (sudoku: SudokuData) => `IPC test: ${sudoku.squares[0].value}`;
 
@@ -65,6 +69,7 @@ ipcMain.on('save-sudoku', async (event, sudoku: SudokuData) => {
 
 	event.reply('save-sudoku', 'response: saved');
 });
+**/
 
 if (process.env.NODE_ENV === 'production') {
 	const sourceMapSupport = require('source-map-support');
@@ -109,12 +114,25 @@ const createWindow = async () => {
 		width: 1024,
 		height: 728,
 		icon: getAssetPath('icon.png'),
+		autoHideMenuBar: true,
 		webPreferences: {
 			preload: app.isPackaged
+				// Load packaged preload JS file
 				? path.join(__dirname, 'preload.js')
-				: path.join(__dirname, '../../.erb/dll/preload.js'),
+				// load transpiled preload JS file
+				: path.join(__dirname, '../../.erb/dll/preload.js'),  
 		},
 	});
+
+	// const Datastore = require('nedb');
+	// const DB = new Datastore({ filename: FILE_PATH, autoload: true });
+
+	// ipcMain.on(SAVE_TOPIC, async (event, title: string) => {
+	// 	console.log(title);
+
+	// 	event.reply(SAVE_TOPIC, 'This is my new title');
+	// });
+
 
 	mainWindow.loadURL(resolveHtmlPath('index.html'));
 
@@ -133,8 +151,9 @@ const createWindow = async () => {
 		mainWindow = null;
 	});
 
-	const menuBuilder = new MenuBuilder(mainWindow);
-	menuBuilder.buildMenu();
+	// @boiler-plate-backup
+	// const menuBuilder = new MenuBuilder(mainWindow);
+	// menuBuilder.buildMenu();
 
 	// Open urls in the user's browser
 	mainWindow.webContents.setWindowOpenHandler((edata) => {
@@ -159,6 +178,13 @@ app.on('window-all-closed', () => {
 	}
 });
 
+async function handleGetTitle(): Promise<string> {
+
+	console.log('Handle Get Title function');
+
+	return 'Coucou from get title';
+}
+
 app
 	.whenReady()
 	.then(() => {
@@ -168,5 +194,8 @@ app
 			// dock icon is clicked and there are no other windows open.
 			if (mainWindow === null) createWindow();
 		});
+
+		ipcMain.handle('getTitle', handleGetTitle)
+		
 	})
 	.catch(console.log);

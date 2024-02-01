@@ -1,24 +1,24 @@
-import {Utils, Column, SudokuData, SquareStatus, EMPTY_SQUARE_VALUE} from './Data';
+import {Utils, Column, Sudoku, SquareStatus, EMPTY_SQUARE_VALUE} from './Data';
 
-export const Sudoku = {
+export const Helper = {
 
 	getRandomNumber: (min: number, max: number): number => {
 		return Math.floor(Math.random() * max) + min;
 	},
 
-	newSudoku: (difficulty: number): SudokuData => {
+	newSudoku: (difficulty: number): Sudoku => {
 
-		let sudoku = Sudoku.setupEmptySudoku();
+		let sudoku = Helper.setupEmptySudoku();
 
-		sudoku = Sudoku.newGame(sudoku);
-		sudoku = Sudoku.hideSquares(difficulty, sudoku);
+		sudoku = Helper.newGame(sudoku);
+		sudoku = Helper.hideSquares(difficulty, sudoku);
 
 		return sudoku;
 	},
 
-	hideSquares(numberOfSquareToHide: number, sudoku: SudokuData): SudokuData {
+	hideSquares(numberOfSquareToHide: number, sudoku: Sudoku): Sudoku {
 
-		let randomCoord: number = Sudoku.getRandomNumber(0, 81);
+		let randomCoord: number = Helper.getRandomNumber(0, 81);
 		const hidedSquareList: number[] = [];
 
 		for(let i = 0; i < numberOfSquareToHide; ) {
@@ -27,23 +27,23 @@ export const Sudoku = {
 				hidedSquareList.push(randomCoord);
 				i++;
 			}
-			randomCoord = Sudoku.getRandomNumber(0, 81);
+			randomCoord = Helper.getRandomNumber(0, 81);
 		}
 
 		return sudoku;
 	},
 
-	newGame: (sudoku: SudokuData): SudokuData => {
+	newGame: (sudoku: Sudoku): Sudoku => {
 
 		let coords: number[] = [];
 
 		for (let number = 1; number <= 9; number++) {
 
-			coords = Sudoku.searchNineAvailableCoords(number, sudoku);
+			coords = Helper.searchNineAvailableCoords(number, sudoku);
 
 			if (9 != coords.length) {
 				number = 0;
-				sudoku = Sudoku.setupEmptySudoku();
+				sudoku = Helper.setupEmptySudoku();
 			} else {
 				coords.forEach((coord) => {
 					sudoku.squares[coord].value = number;
@@ -55,7 +55,7 @@ export const Sudoku = {
 		return sudoku;
 	},
 
-	searchNineAvailableCoords: (value: number, sudoku: SudokuData): number[] => {
+	searchNineAvailableCoords: (value: number, sudoku: Sudoku): number[] => {
 
 		// liste des coords à renvoyer
 		const coords: number[] = [];
@@ -109,7 +109,7 @@ export const Sudoku = {
 			} else {
 				// Il y a des coord de disponibles
 				// Prend une coord au hasar et l'ajoute dans la liste des coords
-				randomCoord = possibleCoords[Sudoku.getRandomNumber(0, possibleCoords.length)];
+				randomCoord = possibleCoords[Helper.getRandomNumber(0, possibleCoords.length)];
 				coords.push(randomCoord);
 				rowList.push(Utils.getRowId(randomCoord));
 				tileList.push(Utils.getTileId(randomCoord));
@@ -119,9 +119,9 @@ export const Sudoku = {
 		return coords;
 	},
 
-	setupEmptySudoku: (): SudokuData => {
+	setupEmptySudoku: (): Sudoku => {
 
-		let sudoku: SudokuData = Utils.newSudoku();
+		let sudoku: Sudoku = Utils.newSudoku();
 
 		let rowId: number = 0;
 		let tileId: number = Math.floor(rowId / 3);

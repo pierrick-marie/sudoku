@@ -13,9 +13,9 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 
 import styles from './sudoku.module.scss';
 
-import { Utils, Row, SudokuData, SquareStatus, SquareData, EMPTY_SQUARE_VALUE } from './utils/Data';
-import { Sudoku } from './utils/CreateSudoku';
-import { Resolv } from './utils/ResolvSudoku';
+import { Utils, Row, Sudoku, SquareStatus, Square, EMPTY_SQUARE_VALUE } from '../utils/Data';
+import { Helper } from '../utils/CreateSudoku';
+import { Resolv } from '../utils/ResolvSudoku';
 
 const DIFFICULTY_EASY: number = 20;
 const DIFFICULTY_MEDIUM: number = 30;
@@ -29,10 +29,22 @@ export default function Root() {
 	const [youWin, setYouWin] = useState<boolean>(false);
 	const [selectedSquare, setSelectedSquare] = useState<number>(-1);
 	const [popupData, setPopupData] = useState<any>({ message: '', x: 0, y: 0 });
-	const [sudoku, setSudoku] = useState<SudokuData>(Sudoku.newSudoku(difficultyLevel));
+	const [sudoku, setSudoku] = useState<Sudoku>(Helper.newSudoku(difficultyLevel));
 
-	const handleSaveGame = () => {
+	const handleSaveGame = async () => {
 
+		// window.electron.ipcRenderer.setTitle('Coucou :)');
+
+		const res = await window.electron.ipcRenderer.getTitle();
+
+		console.log(`Result from invoke : ${res}`);
+
+		// window.electron.ipcRenderer.newTitle((title: string) => {
+		// 	console.log(`New title = ${title}`);
+		// })
+
+		/**
+ 		// @boiler-plate-backup
 		// calling IPC exposed from preload script
 		window.electron.ipcRenderer.once('save-sudoku', (arg) => {
 			// eslint-disable-next-line no-console
@@ -40,13 +52,14 @@ export default function Root() {
 		});
 
 		window.electron.ipcRenderer.sendMessage('save-sudoku', [sudoku]);
+		**/
 	}
 
 	const handleNewGame = () => {
 
 		setYouWin(false);
 
-		setSudoku(Sudoku.newSudoku(difficultyLevel));
+		setSudoku(Helper.newSudoku(difficultyLevel));
 	}
 
 	const handleDifficultyChanged = (event: SelectChangeEvent) => {
@@ -180,7 +193,7 @@ function Popup({ data, handlePopupClick, handleValueClick }: PopupProp) {
 
 interface BoardProps {
 	rows: Row[];
-	squares: SquareData[];
+	squares: Square[];
 	handleSquareClick: any;
 }
 
@@ -211,7 +224,7 @@ function Board({ rows, squares, handleSquareClick }: BoardProps) {
 
 interface RowProps {
 	row: Row;
-	squares: SquareData[];
+	squares: Square[];
 	topBorder: boolean;
 	bottomBorder: boolean;
 	handleSquareClick: any;
@@ -249,7 +262,7 @@ function Row({ row, squares, topBorder, bottomBorder, handleSquareClick }: RowPr
 
 interface SquareProps {
 	coord: number;
-	square: SquareData;
+	square: Square;
 	leftBorder: boolean;
 	rightBorder: boolean;
 	topBorder: boolean;
