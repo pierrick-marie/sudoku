@@ -1,5 +1,11 @@
 /* eslint global-require: off, no-console: off, promise/always-return: off */
 
+
+
+// Need to use IPC : https://www.electronjs.org/docs/latest/tutorial/ipc#ipc-channels
+
+
+
 /**
  * This module executes inside of electron's main process. You can start
  * electron renderer process from here and communicate with the other processes
@@ -15,6 +21,13 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
+import { SudokuData } from '../renderer/utils/Data';
+
+const FILE_PATH: string = '~/.config/sudoku.db';
+const OBJECT_NAME: string = 'MySudoku';
+const Datastore = require('nedb');
+const DB = new Datastore({ filename: FILE_PATH, autoload: true });
+
 class AppUpdater {
 	constructor() {
 		log.transports.file.level = 'info';
@@ -25,13 +38,33 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-// Ping Pong test
-//
-// ipcMain.on('ipc-example', async (event, arg) => {
-// 	const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-// 	console.log(msgTemplate(arg));
-// 	event.reply('ipc-example', msgTemplate('pong'));
-// });
+interface MySudoku {
+	name: string;
+	data: SudokuData;
+}
+
+/**
+ * Save Sudoku with NeDB
+ */
+ipcMain.on('save-sudoku', async (event, sudoku: SudokuData) => {
+	// const msgTemplate = (sudoku: SudokuData) => `IPC test: ${sudoku.squares[0].value}`;
+
+	DB.update({ name: OBJECT_NAME }, { $set: { data: sudoku } }, { upsert: true }, function (err: any, numReplaced: number, upsertId: any) {
+		console.log(`Nb replaced: ${numReplaced}`);
+	});
+
+	DB.findOne({ name: OBJECT_NAME }, function (err: any, {name, data}: MySudoku) {
+		// console.log(`Found: ${name}`);
+		// console.log(data);
+		console.log(data);
+	});
+
+	// DB.remove({ name: OBJECT_NAME }, {}, function (err: any, numRemoved: number) {
+	// 	// numRemoved = 1
+	// });
+
+	event.reply('save-sudoku', 'response: saved');
+});
 
 if (process.env.NODE_ENV === 'production') {
 	const sourceMapSupport = require('source-map-support');

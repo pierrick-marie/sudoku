@@ -1,5 +1,7 @@
 'use client';
 
+
+
 import { useState } from 'react';
 
 import Button from '@mui/material/Button';
@@ -8,7 +10,6 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
-import SendIcon from '@mui/icons-material/Send';
 
 import styles from './sudoku.module.scss';
 
@@ -28,28 +29,39 @@ export default function Root() {
 	const [youWin, setYouWin] = useState<boolean>(false);
 	const [selectedSquare, setSelectedSquare] = useState<number>(-1);
 	const [popupData, setPopupData] = useState<any>({ message: '', x: 0, y: 0 });
-	const [board, setBoard] = useState<SudokuData>(Sudoku.newSudoku(difficultyLevel));
+	const [sudoku, setSudoku] = useState<SudokuData>(Sudoku.newSudoku(difficultyLevel));
+
+	const handleSaveGame = () => {
+
+		// calling IPC exposed from preload script
+		window.electron.ipcRenderer.once('save-sudoku', (arg) => {
+			// eslint-disable-next-line no-console
+			console.log(arg);
+		});
+
+		window.electron.ipcRenderer.sendMessage('save-sudoku', [sudoku]);
+	}
 
 	const handleNewGame = () => {
 
 		setYouWin(false);
 
-		setBoard(Sudoku.newSudoku(difficultyLevel));
+		setSudoku(Sudoku.newSudoku(difficultyLevel));
 	}
 
 	const handleDifficultyChanged = (event: SelectChangeEvent) => {
 		setDifficultyLevel(+event.target.value);
 	}
 
-	const handleSquareClicked = (id: number, x: number, y: number) => {
+	const handleSquareClicked = (coord: number, x: number, y: number) => {
 
 		if (!youWin) {
 
-			let values = Utils.getPossibleValues(id, board);
+			let values = Utils.getPossibleValues(coord, sudoku);
 
 			setDisplayPopup(true);
 			setPopupData({ x, y, values })
-			setSelectedSquare(id);
+			setSelectedSquare(coord);
 		}
 	}
 
@@ -60,14 +72,14 @@ export default function Root() {
 	const handlePopupValueClicked = (value: number) => {
 
 		if (EMPTY_SQUARE_VALUE === value) {
-			board.squares[selectedSquare].status = SquareStatus.Writable;
+			sudoku.squares[selectedSquare].status = SquareStatus.Writable;
 		} else {
-			board.squares[selectedSquare].status = SquareStatus.Filled;
+			sudoku.squares[selectedSquare].status = SquareStatus.Filled;
 		}
 
-		board.squares[selectedSquare].value = value;
+		sudoku.squares[selectedSquare].value = value;
 
-		if (Resolv.isValid(board)) {
+		if (Resolv.isValid(sudoku)) {
 			setYouWin(true);
 		}
 	}
@@ -79,14 +91,18 @@ export default function Root() {
 
 			{youWin && (<YouWin />)}
 
-			<Board rows={board.rows} squares={board.squares} handleSquareClick={handleSquareClicked} />
+			<Board rows={sudoku.rows} squares={sudoku.squares} handleSquareClick={handleSquareClicked} />
 
 			<div className={styles.control}>
 
 				<DifficultyLevel difficulty={difficultyLevel} handleDifficultyChange={handleDifficultyChanged} />
 
-				<Button sx={{ m: 1, minWidth: 120 }} variant='outlined' endIcon={<SendIcon />} onClick={handleNewGame} >
-					New game!
+				<Button sx={{ m: 1, minWidth: 120 }} variant='outlined' onClick={handleNewGame} >
+					Nouveau
+				</Button>
+
+				<Button sx={{ m: 1, minWidth: 120 }} variant='outlined' color='secondary' onClick={handleSaveGame} >
+					Enregistrer
 				</Button>
 
 			</div>
@@ -99,7 +115,7 @@ interface DifficultyProp {
 	handleDifficultyChange: any;
 }
 
-function DifficultyLevel({difficulty, handleDifficultyChange}: DifficultyProp) {
+function DifficultyLevel({ difficulty, handleDifficultyChange }: DifficultyProp) {
 
 	return (
 		<FormControl sx={{ m: 1, minWidth: 120 }} size="small">
