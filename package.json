@@ -1,5 +1,17 @@
 {
-	"description": "A foundation for scalable desktop apps",
+	"version": "1.0.0",
+	"name": "@pierrick-marie/sudoku",
+	"description": "Sudoku game",
+	"author": {
+	  "name": "pierrick-marie"
+	},
+	"repository": {
+	    "type": "git",
+	    "url": "https://github.com/pierrick-marie/sudoku"
+	},
+	"publishConfig": {
+	  "registry": "https://npm.pkg.github.com/"
+	},
 	"keywords": [
 		"electron",
 		"boilerplate",
@@ -15,16 +27,7 @@
 	"bugs": {
 		"url": "https://github.com/electron-react-boilerplate/electron-react-boilerplate/issues"
 	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/electron-react-boilerplate/electron-react-boilerplate.git"
-	},
 	"license": "MIT",
-	"author": {
-		"name": "Electron React Boilerplate Maintainers",
-		"email": "electronreactboilerplate@gmail.com",
-		"url": "https://electron-react-boilerplate.js.org"
-	},
 	"contributors": [
 		{
 			"name": "Amila Welihinda",
@@ -32,9 +35,6 @@
 			"url": "https://github.com/amilajack"
 		}
 	],
-	"publishConfig": {
-		"@pierrick-marie:registry": "https://npm.pkg.github.com"
-	},
 	"main": "./src/main/main.ts",
 	"scripts": {
 		"build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
