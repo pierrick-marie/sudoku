@@ -51,7 +51,7 @@
 
 			.square {
 				display: flex;
-				background-color: rgb(181, 181, 181);
+				background-color: rgb(195, 195, 195);
 				height: 3em;
 				width: 3em;
 				border: 0.1em solid black;
@@ -81,11 +81,11 @@
 			}
 
 			.writable {
-				background-color: bisque;
+				background-color: rgba(190, 141, 198, 0.15);
 			}
 
 			.filled {
-				background-color: rgb(175, 255, 228);
+				background-color: rgba(25, 118, 210, 0.4);
 			}
 		}
 	}

@@ -65,12 +65,11 @@ interface SquareProps {
 
 export default function Root() {
 
-	
-	const newGame = (): Sudoku => {
+	const newGame = (difficulty: Difficulty): Sudoku => {
 		
 		const mySudoku: Sudoku = new Sudoku();
 
-		switch (difficultyLevel) {
+		switch (difficulty) {
 			case Difficulty.Easy: {
 				mySudoku.newGameEasy();
 				break;
@@ -97,7 +96,7 @@ export default function Root() {
 	const [youWin, setYouWin] = useState<boolean>(false);
 	const [selectedSquare, setSelectedSquare] = useState<Square>(new Square(DEFAULT_VALUE));
 	const [popupData, setPopupData] = useState<PopupData>({ values: [], x: 0, y: 0 });
-	const [sudoku, setSudoku] = useState<Sudoku>(newGame());
+	const [sudoku, setSudoku] = useState<Sudoku>(newGame(difficultyLevel));
 
 	const handleSaveGame = async () => {
 
@@ -126,14 +125,13 @@ export default function Root() {
 	const handleNewGame = () => {
 
 		setYouWin(false);
-		
-		setSudoku(newGame());
+		setSudoku(newGame(difficultyLevel));
 	}
 
 	const handleDifficultyChanged = (event: SelectChangeEvent) => {
+		
 		setDifficultyLevel(+event.target.value);
-
-		setSudoku(newGame());
+		setSudoku(newGame(+event.target.value));
 	}
 
 	const handleSquareClicked = (square: Square, x: number, y: number) => {
