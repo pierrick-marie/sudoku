@@ -2,6 +2,7 @@ import { Tile } from "./Tile";
 import { Column } from "./Column";
 import { Row } from "./Row";
 import { Square } from "./Square";
+import { SquareSharp } from "@mui/icons-material";
 
 const DIFFICULTY_EASY: number = 20;
 const DIFFICULTY_MEDIUM: number = 30;
@@ -13,7 +14,7 @@ export class Sudoku {
 	public readonly rows: Row[];
 	public readonly columns: Column[];
 	public readonly tiles: Tile[];
-	public readonly squares: Square[];
+	public squares: Square[];
 
 	public constructor() {
 		this.rows = [];
@@ -21,7 +22,14 @@ export class Sudoku {
 		this.tiles = [];
 		this.squares = [];
 
-		this.init();
+		for (let i = 0; i < 9; i++) {
+			this.rows.push(new Row(i));
+			this.columns.push(new Column(i));
+			this.tiles.push(new Tile(i));
+		}
+
+		this.initSquares();
+		this.initRefs();
 	}
 
 	/**
@@ -29,8 +37,11 @@ export class Sudoku {
 	 * @param difficultyLevel the number of square to hide
 	 */
 	private newGameWithDifficulty(difficultyLevel: number) {
+
 		this.reset();
+		// Create a new valid game
 		this.newGame();
+		// Hide some of squares
 		this.hideSquares(difficultyLevel);
 	}
 
@@ -63,6 +74,20 @@ export class Sudoku {
 	}
 
 	/**
+	 * Create a game from an array of 81 squares
+	 * @param loadedSquares the squares to load
+	 */
+	public loadGame(loadedSquares: Square[]) {
+		
+		if (81 === loadedSquares.length) {
+			
+			this.squares.forEach((square: Square, index: number) => {
+				square.load(loadedSquares[index])
+			});
+		}
+	}
+
+	/**
 	 * Generate a random number
 	 * @param min min value of random number (included)
 	 * @param max max value of random number (excluded)
@@ -72,19 +97,7 @@ export class Sudoku {
 		return Math.floor(Math.random() * max) + min;
 	}
 
-	/**
-	 * Setup empty rows, columns, tiles and squares
-	 */
-	private init() {
-		for (let i = 0; i < 9; i++) {
-			this.rows.push(new Row(i));
-			this.columns.push(new Column(i));
-			this.tiles.push(new Tile(i));
-		}
-
-		let rowId: number = 0;
-		let tileId: number = Math.floor(rowId / 3);
-		let columnId: number = 0;
+	private initSquares() {
 
 		let square: Square;
 
@@ -94,6 +107,19 @@ export class Sudoku {
 
 			// Square
 			this.squares.push(square);
+		}
+	}
+
+	/**
+	 * Setup empty rows, columns, tiles and squares
+	 */
+	private initRefs() {
+
+		let rowId: number = 0;
+		let tileId: number = Math.floor(rowId / 3);
+		let columnId: number = 0;
+
+		this.squares.forEach((square, coord) => {
 
 			// Rows
 			this.rows[rowId].squares.push(square);
@@ -131,7 +157,7 @@ export class Sudoku {
 				// This is the last column, go to the first
 				columnId = 0;
 			}
-		}
+		});
 	}
 
 	/**

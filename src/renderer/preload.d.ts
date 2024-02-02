@@ -1,34 +1,10 @@
-/**
- // @boiler-plate-backup
-import { ElectronHandler } from '../main/preload';
-
-declare global {
-	// eslint-disable-next-line no-unused-vars
-	interface Window {
-		electron: ElectronHandler;
-	}
-}
-
-export { };
-**/
-
-// export interface IElectronAPI {
-// 	setTitle: (title: string) => Promise<void>,
-// }
+// import { ElectronHandler } from '../main/preload';
 
 // declare global {
+// 	// eslint-disable-next-line no-unused-vars
 // 	interface Window {
-// 		electronAPI: IElectronAPI
+// 		electron: ElectronHandler;
 // 	}
 // }
 
-import { ElectronHandler } from '../main/preload';
-
-declare global {
-	// eslint-disable-next-line no-unused-vars
-	interface Window {
-		electron: ElectronHandler;
-	}
-}
-
-export { };
+// export { };

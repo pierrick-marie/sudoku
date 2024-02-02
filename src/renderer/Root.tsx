@@ -16,6 +16,7 @@ import { Square } from '../sudoku/models/Square';
 import { Row } from '../sudoku/models/Row';
 
 const DEFAULT_VALUE: number = -1;
+const SAVE_GAME: string = 'mySudoku';
 
 enum Difficulty {
 	Easy,
@@ -65,8 +66,27 @@ interface SquareProps {
 
 export default function Root() {
 
+	const loadGame = (): Sudoku => {
+
+		const mySudoku: Sudoku = new Sudoku();
+
+		let jsonSquares = localStorage.getItem(SAVE_GAME);
+
+		// If there is squares in local storage
+		if(null != jsonSquares) {
+			let squares: Square[] = JSON.parse(jsonSquares);
+			mySudoku.loadGame(squares);
+
+			return mySudoku;
+		} 
+
+		// There is no square in loacl storage
+		// Create a new game
+		return newGame(difficultyLevel);
+	}
+
 	const newGame = (difficulty: Difficulty): Sudoku => {
-		
+
 		const mySudoku: Sudoku = new Sudoku();
 
 		switch (difficulty) {
@@ -93,43 +113,25 @@ export default function Root() {
 
 	const [displayPopup, setDisplayPopup] = useState<boolean>(false);
 	const [difficultyLevel, setDifficultyLevel] = useState<Difficulty>(Difficulty.Easy);
-	const [youWin, setYouWin] = useState<boolean>(false);
 	const [selectedSquare, setSelectedSquare] = useState<Square>(new Square(DEFAULT_VALUE));
 	const [popupData, setPopupData] = useState<PopupData>({ values: [], x: 0, y: 0 });
-	const [sudoku, setSudoku] = useState<Sudoku>(newGame(difficultyLevel));
+	const [sudoku, setSudoku] = useState<Sudoku>(loadGame());
+	const [youWin, setYouWin] = useState<boolean>(sudoku.isValid());
 
-	const handleSaveGame = async () => {
+	const saveGame = () => {
 
-		// window.electron.ipcRenderer.setTitle('Coucou :)');
-
-		// const res = await window.electron.ipcRenderer.getTitle();
-
-		// console.log(`Result from invoke : ${res}`);
-
-		// window.electron.ipcRenderer.newTitle((title: string) => {
-		// 	console.log(`New title = ${title}`);
-		// })
-
-		/**
-		    // @boiler-plate-backup
-		// calling IPC exposed from preload script
-		window.electron.ipcRenderer.once('save-sudoku', (arg) => {
-			// eslint-disable-next-line no-console
-			console.log(arg);
-		});
-
-		window.electron.ipcRenderer.sendMessage('save-sudoku', [sudoku]);
-		**/
+		window.localStorage.setItem(SAVE_GAME, JSON.stringify(sudoku.squares));
 	}
 
 	const handleNewGame = () => {
 
 		setYouWin(false);
 		setSudoku(newGame(difficultyLevel));
+		saveGame();
 	}
 
 	const handleDifficultyChanged = (event: SelectChangeEvent) => {
-		
+
 		setDifficultyLevel(+event.target.value);
 		setSudoku(newGame(+event.target.value));
 	}
@@ -156,6 +158,7 @@ export default function Root() {
 			selectedSquare.reset();
 		} else {
 			selectedSquare.setValue(value);
+			saveGame();
 
 			if (sudoku.isValid()) {
 				setYouWin(true);
@@ -179,11 +182,6 @@ export default function Root() {
 				<Button sx={{ m: 1, minWidth: 120 }} variant='outlined' onClick={handleNewGame} >
 					Nouveau
 				</Button>
-
-				<Button sx={{ m: 1, minWidth: 120 }} variant='outlined' color='secondary' onClick={handleSaveGame} >
-					Enregistrer
-				</Button>
-
 			</div>
 		</div>
 	)

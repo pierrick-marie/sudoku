@@ -15,20 +15,12 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 // @boiler-plate-backup
 // import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-
-import { Sudoku } from '../sudoku/deprecated/Data';
-
-const OBJECT_NAME: string = 'MySudoku';
-
-import { LOAD_TOPIC, SAVE_TOPIC } from '../sudoku/deprecated/Data';
-import { electron } from 'process';
-const FILE_PATH: string = '.config/sudoku.db';
 
 class AppUpdater {
 	constructor() {
@@ -39,37 +31,6 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
-
-interface MySudoku {
-	name: string;
-	data: Sudoku;
-}
-
-/**
- * Save Sudoku with NeDB
- */
-/**
- // @boiler-plate-backup
-ipcMain.on('save-sudoku', async (event, sudoku: SudokuData) => {
-	// const msgTemplate = (sudoku: SudokuData) => `IPC test: ${sudoku.squares[0].value}`;
-
-	DB.update({ name: OBJECT_NAME }, { $set: { data: sudoku } }, { upsert: true }, function (err: any, numReplaced: number, upsertId: any) {
-		console.log(`Nb replaced: ${numReplaced}`);
-	});
-
-	DB.findOne({ name: OBJECT_NAME }, function (err: any, {name, data}: MySudoku) {
-		// console.log(`Found: ${name}`);
-		// console.log(data);
-		console.log(data);
-	});
-
-	// DB.remove({ name: OBJECT_NAME }, {}, function (err: any, numRemoved: number) {
-	// 	// numRemoved = 1
-	// });
-
-	event.reply('save-sudoku', 'response: saved');
-});
-**/
 
 if (process.env.NODE_ENV === 'production') {
 	const sourceMapSupport = require('source-map-support');
@@ -116,6 +77,7 @@ const createWindow = async () => {
 		icon: getAssetPath('icon.png'),
 		autoHideMenuBar: true,
 		webPreferences: {
+			devTools: false,
 			preload: app.isPackaged
 				// Load packaged preload JS file
 				? path.join(__dirname, 'preload.js')
@@ -123,16 +85,6 @@ const createWindow = async () => {
 				: path.join(__dirname, '../../.erb/dll/preload.js'),
 		},
 	});
-
-	// const Datastore = require('nedb');
-	// const DB = new Datastore({ filename: FILE_PATH, autoload: true });
-
-	// ipcMain.on(SAVE_TOPIC, async (event, title: string) => {
-	// 	console.log(title);
-
-	// 	event.reply(SAVE_TOPIC, 'This is my new title');
-	// });
-
 
 	mainWindow.loadURL(resolveHtmlPath('index.html'));
 
@@ -178,12 +130,6 @@ app.on('window-all-closed', () => {
 	}
 });
 
-// async function handleGetTitle(): Promise<string> {
-
-// 	console.log('Handle Get Title function');
-
-// 	return 'Coucou from get title';
-// }
 
 app.whenReady()
 	.then(() => {

@@ -9,7 +9,7 @@ enum SquareStatus {
 
 export class Square {
 
-	public readonly coord: number;
+	public coord: number;
 	private value: number;
 	private status: SquareStatus;
 
@@ -18,6 +18,12 @@ export class Square {
 
 		this.value = EMPTY_SQUARE_VALUE;
 		this.status = SquareStatus.Writable;
+	}
+
+	public load({coord, value, status}: Square) {
+		this.coord = coord;
+		this.value = value;
+		this.status = status;
 	}
 
 	public isEmpty(): boolean {
