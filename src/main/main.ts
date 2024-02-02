@@ -26,7 +26,7 @@ import { Sudoku } from '../sudoku/deprecated/Data';
 
 const OBJECT_NAME: string = 'MySudoku';
 
-import {LOAD_TOPIC, SAVE_TOPIC} from '../sudoku/deprecated/Data'; 
+import { LOAD_TOPIC, SAVE_TOPIC } from '../sudoku/deprecated/Data';
 import { electron } from 'process';
 const FILE_PATH: string = '.config/sudoku.db';
 
@@ -120,7 +120,7 @@ const createWindow = async () => {
 				// Load packaged preload JS file
 				? path.join(__dirname, 'preload.js')
 				// load transpiled preload JS file
-				: path.join(__dirname, '../../.erb/dll/preload.js'),  
+				: path.join(__dirname, '../../.erb/dll/preload.js'),
 		},
 	});
 
@@ -178,15 +178,14 @@ app.on('window-all-closed', () => {
 	}
 });
 
-async function handleGetTitle(): Promise<string> {
+// async function handleGetTitle(): Promise<string> {
 
-	console.log('Handle Get Title function');
+// 	console.log('Handle Get Title function');
 
-	return 'Coucou from get title';
-}
+// 	return 'Coucou from get title';
+// }
 
-app
-	.whenReady()
+app.whenReady()
 	.then(() => {
 		createWindow();
 		app.on('activate', () => {
@@ -195,7 +194,7 @@ app
 			if (mainWindow === null) createWindow();
 		});
 
-		ipcMain.handle('getTitle', handleGetTitle)
-		
+		// ipcMain.handle('getTitle', handleGetTitle)
+
 	})
 	.catch(console.log);

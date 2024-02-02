@@ -15,11 +15,14 @@ import { Sudoku } from '../sudoku/models/Sudoku';
 import { Square } from '../sudoku/models/Square';
 import { Row } from '../sudoku/models/Row';
 
-const DIFFICULTY_EASY: number = 1;
-const DIFFICULTY_MEDIUM: number = 2;
-const DIFFICULTY_HARD: number = 3;
-const DIFFICULTY_VERY_HARD: number = 4;
 const DEFAULT_VALUE: number = -1;
+
+enum Difficulty {
+	Easy,
+	Medium,
+	Hard,
+	Very_Hard,
+}
 
 interface PopupData {
 	x: number;
@@ -33,36 +36,68 @@ interface PopupProp {
 	handleValueClick: any;
 }
 
+interface DifficultyProp {
+	difficulty: Difficulty;
+	handleDifficultyChange: any;
+}
+
+interface BoardProps {
+	sudoku: Sudoku;
+	handleSquareClick: any;
+}
+
+interface RowProps {
+	row: Row;
+	topBorder: boolean;
+	bottomBorder: boolean;
+	handleSquareClick: any;
+
+}
+
+interface SquareProps {
+	square: Square;
+	leftBorder: boolean;
+	rightBorder: boolean;
+	topBorder: boolean;
+	bottomBorder: boolean;
+	onSquareClick: any;
+}
 
 export default function Root() {
 
-	const [displayPopup, setDisplayPopup] = useState<boolean>(false);
-	const [difficultyLevel, setDifficultyLevel] = useState<number>(DIFFICULTY_EASY);
-	const [youWin, setYouWin] = useState<boolean>(false);
-	const [selectedSquare, setSelectedSquare] = useState<Square>(new Square(DEFAULT_VALUE));
-	const [popupData, setPopupData] = useState<PopupData>({ values: [], x: 0, y: 0 });
-	const [sudoku, setSudoku] = useState<Sudoku>(new Sudoku());
+	
+	const newGame = (): Sudoku => {
+		
+		const mySudoku: Sudoku = new Sudoku();
 
-	const changeDifficulty = (): Sudoku => {
-		switch(difficultyLevel) {
-			case DIFFICULTY_EASY: {
-				sudoku.newGameEasy();
+		switch (difficultyLevel) {
+			case Difficulty.Easy: {
+				mySudoku.newGameEasy();
+				break;
 			}
-			case DIFFICULTY_MEDIUM: {
-				sudoku.newGameMedium();
+			case Difficulty.Medium: {
+				mySudoku.newGameMedium();
+				break;
 			}
-			case DIFFICULTY_HARD: {
-				sudoku.newGameHard();
+			case Difficulty.Hard: {
+				mySudoku.newGameHard();
+				break;
 			}
-			case DIFFICULTY_VERY_HARD: {
-				sudoku.newGameVeryHard();
+			case Difficulty.Very_Hard: {
+				mySudoku.newGameVeryHard();
+				break;
 			}
 		}
 
-		return sudoku;
+		return mySudoku;
 	}
-	changeDifficulty();
 
+	const [displayPopup, setDisplayPopup] = useState<boolean>(false);
+	const [difficultyLevel, setDifficultyLevel] = useState<Difficulty>(Difficulty.Easy);
+	const [youWin, setYouWin] = useState<boolean>(false);
+	const [selectedSquare, setSelectedSquare] = useState<Square>(new Square(DEFAULT_VALUE));
+	const [popupData, setPopupData] = useState<PopupData>({ values: [], x: 0, y: 0 });
+	const [sudoku, setSudoku] = useState<Sudoku>(newGame());
 
 	const handleSaveGame = async () => {
 
@@ -77,7 +112,7 @@ export default function Root() {
 		// })
 
 		/**
- 		// @boiler-plate-backup
+		    // @boiler-plate-backup
 		// calling IPC exposed from preload script
 		window.electron.ipcRenderer.once('save-sudoku', (arg) => {
 			// eslint-disable-next-line no-console
@@ -91,12 +126,14 @@ export default function Root() {
 	const handleNewGame = () => {
 
 		setYouWin(false);
-
-		setSudoku(changeDifficulty());
+		
+		setSudoku(newGame());
 	}
 
 	const handleDifficultyChanged = (event: SelectChangeEvent) => {
 		setDifficultyLevel(+event.target.value);
+
+		setSudoku(newGame());
 	}
 
 	const handleSquareClicked = (square: Square, x: number, y: number) => {
@@ -105,9 +142,9 @@ export default function Root() {
 
 			let values = sudoku.getPossibleValues(square);
 
-			setDisplayPopup(true);
 			setPopupData({ x, y, values })
 			setSelectedSquare(square);
+			setDisplayPopup(true);
 		}
 	}
 
@@ -117,16 +154,14 @@ export default function Root() {
 
 	const handlePopupValueClicked = (value: number) => {
 
-		if (EMPTY_SQUARE_VALUE === value) {
-			sudoku.squares[selectedSquare].status = SquareStatus.Writable;
+		if (DEFAULT_VALUE === value) {
+			selectedSquare.reset();
 		} else {
-			sudoku.squares[selectedSquare].status = SquareStatus.Filled;
-		}
+			selectedSquare.setValue(value);
 
-		sudoku.squares[selectedSquare].value = value;
-
-		if (Resolv.isValid(sudoku)) {
-			setYouWin(true);
+			if (sudoku.isValid()) {
+				setYouWin(true);
+			}
 		}
 	}
 
@@ -137,7 +172,7 @@ export default function Root() {
 
 			{youWin && (<YouWin />)}
 
-			<Board rows={sudoku.rows} squares={sudoku.squares} handleSquareClick={handleSquareClicked} />
+			<Board sudoku={sudoku} handleSquareClick={handleSquareClicked} />
 
 			<div className={styles.control}>
 
@@ -156,11 +191,6 @@ export default function Root() {
 	)
 }
 
-interface DifficultyProp {
-	difficulty: number;
-	handleDifficultyChange: any;
-}
-
 function DifficultyLevel({ difficulty, handleDifficultyChange }: DifficultyProp) {
 
 	return (
@@ -173,10 +203,10 @@ function DifficultyLevel({ difficulty, handleDifficultyChange }: DifficultyProp)
 				label="Diffilté"
 				onChange={handleDifficultyChange}
 			>
-				<MenuItem value={DIFFICULTY_EASY}>Facile</MenuItem>
-				<MenuItem value={DIFFICULTY_MEDIUM}>Moyen</MenuItem>
-				<MenuItem value={DIFFICULTY_HARD}>Difficile</MenuItem>
-				<MenuItem value={DIFFICULTY_VERY_HARD}>Très difficile</MenuItem>
+				<MenuItem value={Difficulty.Easy}>Facile</MenuItem>
+				<MenuItem value={Difficulty.Medium}>Moyen</MenuItem>
+				<MenuItem value={Difficulty.Hard}>Difficile</MenuItem>
+				<MenuItem value={Difficulty.Very_Hard}>Très difficile</MenuItem>
 			</Select>
 		</FormControl>
 	)
@@ -211,32 +241,25 @@ function Popup({ data, handlePopupClick, handleValueClick }: PopupProp) {
 					</p>
 				)
 			})}
-			<p className={styles.cancel} onClick={() => { handleValueClick(EMPTY_SQUARE_VALUE) }}>x</p>
+			<p className={styles.cancel} onClick={() => { handleValueClick(DEFAULT_VALUE) }}>x</p>
 		</div>
 	)
 }
 
-interface BoardProps {
-	rows: Row[];
-	squares: Square[];
-	handleSquareClick: any;
-}
-
-function Board({ rows, squares, handleSquareClick }: BoardProps) {
+function Board({ sudoku, handleSquareClick }: BoardProps) {
 
 	let counter = 0;
 
 	return (
 		<div>
 			<div className={styles.board}>
-				{rows.map((myRow: RowElement, index) => {
+				{sudoku.rows.map((myRow: Row, index: number) => {
 					if (counter >= 3) {
 						counter = 0;
 					}
 					counter++;
 					return <RowElement
 						row={myRow}
-						squares={squares}
 						topBorder={counter == 1}
 						bottomBorder={counter == 3}
 						handleSquareClick={handleSquareClick}
@@ -247,36 +270,28 @@ function Board({ rows, squares, handleSquareClick }: BoardProps) {
 	)
 }
 
-interface RowProps {
-	row: Row;
-	squares: Square[];
-	topBorder: boolean;
-	bottomBorder: boolean;
-	handleSquareClick: any;
 
-}
 
-function RowElement({ row, squares, topBorder, bottomBorder, handleSquareClick }: RowProps) {
+function RowElement({ row, topBorder, bottomBorder, handleSquareClick }: RowProps) {
 
 	let counter = 0;
 
 	return (
 		<div className={styles.row}>
-			{row.coords.map((myCoord: number) => {
+			{row.squares.map((mySquare: Square) => {
 				if (counter >= 3) {
 					counter = 0;
 				}
 				counter++;
 				return (
 					<SquareElement
-						coord={myCoord}
-						square={squares[myCoord]}
+						square={mySquare}
 						leftBorder={counter == 1}
 						rightBorder={counter == 3}
 						topBorder={topBorder}
 						bottomBorder={bottomBorder}
 						onSquareClick={handleSquareClick}
-						key={myCoord} />
+						key={mySquare.coord} />
 				)
 			})}
 		</div>
@@ -285,33 +300,23 @@ function RowElement({ row, squares, topBorder, bottomBorder, handleSquareClick }
 
 
 
-interface SquareProps {
-	coord: number;
-	square: Square;
-	leftBorder: boolean;
-	rightBorder: boolean;
-	topBorder: boolean;
-	bottomBorder: boolean;
-	onSquareClick: any;
-}
 
-function SquareElement({ coord, square, leftBorder, rightBorder, topBorder, bottomBorder, onSquareClick }: SquareProps) {
+
+function SquareElement({ square, leftBorder, rightBorder, topBorder, bottomBorder, onSquareClick }: SquareProps) {
 
 	return (
 		<div
-			onClick={(event) => { if (square.status != SquareStatus.Default) { onSquareClick(coord, event.clientX, event.clientY) } }}
+			onClick={(event) => { if (square.isWritable()) { onSquareClick(square, event.clientX, event.clientY) } }}
 			className={`
 				${styles.square} 
 				${topBorder ? styles.borderTop : ''}
 				${bottomBorder ? styles.borderBottom : ''}
 				${rightBorder ? styles.borderRight : ''}
 				${leftBorder ? styles.borderLeft : ''}
-				${square.status === SquareStatus.Default ? styles.default :
-					square.status === SquareStatus.Writable ? styles.writable :
-						styles.filled}
+				${square.isFilled() ? styles.filled : square.isWritable() ? styles.writable : ''}
 			`}
 		>
-			<div className={styles.value}>{square.value === EMPTY_SQUARE_VALUE ? '' : square.value}</div>
+			<div className={styles.value}>{square.isEmpty() ? '' : square.getValue()}</div>
 		</div>
 	)
 }

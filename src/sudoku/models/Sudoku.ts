@@ -1,7 +1,7 @@
 import { Tile } from "./Tile";
 import { Column } from "./Column";
 import { Row } from "./Row";
-import { Square, SquareStatus } from "./Square";
+import { Square } from "./Square";
 
 const DIFFICULTY_EASY: number = 20;
 const DIFFICULTY_MEDIUM: number = 30;
@@ -10,10 +10,10 @@ const DIFFICULTY_VERY_HARD: number = 50;
 
 export class Sudoku {
 
-	private readonly rows: Row[];
-	private readonly columns: Column[];
-	private readonly tiles: Tile[];
-	private readonly squares: Square[];
+	public readonly rows: Row[];
+	public readonly columns: Column[];
+	public readonly tiles: Tile[];
+	public readonly squares: Square[];
 
 	public constructor() {
 		this.rows = [];
@@ -150,8 +150,7 @@ export class Sudoku {
 				this.reset();
 			} else {
 				squares.forEach((square) => {
-					square.value = number;
-					square.status = SquareStatus.Default;
+					square.defaultValue(number);
 				});
 			}
 
