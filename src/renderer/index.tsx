@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
 
-import Root from './Sudoku';
+import Root from './Root';
 
 const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);

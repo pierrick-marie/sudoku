@@ -13,9 +13,9 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 
 import styles from './sudoku.module.scss';
 
-import { Utils, Row, Sudoku, SquareStatus, Square, EMPTY_SQUARE_VALUE } from '../utils/Data';
-import { Helper } from '../utils/CreateSudoku';
-import { Resolv } from '../utils/ResolvSudoku';
+import { Utils, Row, Sudoku, SquareStatus, Square, EMPTY_SQUARE_VALUE } from '../sudoku/Data';
+import { Helper } from '../sudoku/CreateSudoku';
+import { Resolv } from '../sudoku/ResolvSudoku';
 
 const DIFFICULTY_EASY: number = 20;
 const DIFFICULTY_MEDIUM: number = 30;
@@ -35,9 +35,9 @@ export default function Root() {
 
 		// window.electron.ipcRenderer.setTitle('Coucou :)');
 
-		const res = await window.electron.ipcRenderer.getTitle();
+		// const res = await window.electron.ipcRenderer.getTitle();
 
-		console.log(`Result from invoke : ${res}`);
+		// console.log(`Result from invoke : ${res}`);
 
 		// window.electron.ipcRenderer.newTitle((title: string) => {
 		// 	console.log(`New title = ${title}`);

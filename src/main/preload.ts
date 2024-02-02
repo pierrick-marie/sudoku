@@ -34,7 +34,7 @@ export type ElectronHandler = typeof electronHandler;
 
 const { contextBridge, ipcRenderer, ipcMain } = require('electron');
 
-import {LOAD_TOPIC, SAVE_TOPIC} from '../utils/Data'; 
+import {LOAD_TOPIC, SAVE_TOPIC} from '../sudoku/Data'; 
 
 // contextBridge.exposeInMainWorld('electronAPI', {
 // 	setTitle: (title: string) => { ipcRenderer.send('set-title', title) }
