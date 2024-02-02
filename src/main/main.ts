@@ -22,11 +22,11 @@ import log from 'electron-log';
 // import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
-import { Sudoku } from '../sudoku/Data';
+import { Sudoku } from '../sudoku/deprecated/Data';
 
 const OBJECT_NAME: string = 'MySudoku';
 
-import {LOAD_TOPIC, SAVE_TOPIC} from '../sudoku/Data'; 
+import {LOAD_TOPIC, SAVE_TOPIC} from '../sudoku/deprecated/Data'; 
 import { electron } from 'process';
 const FILE_PATH: string = '.config/sudoku.db';
 

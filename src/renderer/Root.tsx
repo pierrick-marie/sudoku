@@ -1,7 +1,5 @@
 'use client';
 
-
-
 import { useState } from 'react';
 
 import Button from '@mui/material/Button';
@@ -13,23 +11,58 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 
 import styles from './sudoku.module.scss';
 
-import { Utils, Row, Sudoku, SquareStatus, Square, EMPTY_SQUARE_VALUE } from '../sudoku/Data';
-import { Helper } from '../sudoku/CreateSudoku';
-import { Resolv } from '../sudoku/ResolvSudoku';
+import { Sudoku } from '../sudoku/models/Sudoku';
+import { Square } from '../sudoku/models/Square';
+import { Row } from '../sudoku/models/Row';
 
-const DIFFICULTY_EASY: number = 20;
-const DIFFICULTY_MEDIUM: number = 30;
-const DIFFICULTY_HARD: number = 40;
-const DIFFICULTY_VERY_HARD: number = 50;
+const DIFFICULTY_EASY: number = 1;
+const DIFFICULTY_MEDIUM: number = 2;
+const DIFFICULTY_HARD: number = 3;
+const DIFFICULTY_VERY_HARD: number = 4;
+const DEFAULT_VALUE: number = -1;
+
+interface PopupData {
+	x: number;
+	y: number;
+	values: number[];
+}
+
+interface PopupProp {
+	data: PopupData;
+	handlePopupClick: any;
+	handleValueClick: any;
+}
+
 
 export default function Root() {
 
 	const [displayPopup, setDisplayPopup] = useState<boolean>(false);
 	const [difficultyLevel, setDifficultyLevel] = useState<number>(DIFFICULTY_EASY);
 	const [youWin, setYouWin] = useState<boolean>(false);
-	const [selectedSquare, setSelectedSquare] = useState<number>(-1);
-	const [popupData, setPopupData] = useState<any>({ message: '', x: 0, y: 0 });
-	const [sudoku, setSudoku] = useState<Sudoku>(Helper.newSudoku(difficultyLevel));
+	const [selectedSquare, setSelectedSquare] = useState<Square>(new Square(DEFAULT_VALUE));
+	const [popupData, setPopupData] = useState<PopupData>({ values: [], x: 0, y: 0 });
+	const [sudoku, setSudoku] = useState<Sudoku>(new Sudoku());
+
+	const changeDifficulty = (): Sudoku => {
+		switch(difficultyLevel) {
+			case DIFFICULTY_EASY: {
+				sudoku.newGameEasy();
+			}
+			case DIFFICULTY_MEDIUM: {
+				sudoku.newGameMedium();
+			}
+			case DIFFICULTY_HARD: {
+				sudoku.newGameHard();
+			}
+			case DIFFICULTY_VERY_HARD: {
+				sudoku.newGameVeryHard();
+			}
+		}
+
+		return sudoku;
+	}
+	changeDifficulty();
+
 
 	const handleSaveGame = async () => {
 
@@ -59,22 +92,22 @@ export default function Root() {
 
 		setYouWin(false);
 
-		setSudoku(Helper.newSudoku(difficultyLevel));
+		setSudoku(changeDifficulty());
 	}
 
 	const handleDifficultyChanged = (event: SelectChangeEvent) => {
 		setDifficultyLevel(+event.target.value);
 	}
 
-	const handleSquareClicked = (coord: number, x: number, y: number) => {
+	const handleSquareClicked = (square: Square, x: number, y: number) => {
 
 		if (!youWin) {
 
-			let values = Utils.getPossibleValues(coord, sudoku);
+			let values = sudoku.getPossibleValues(square);
 
 			setDisplayPopup(true);
 			setPopupData({ x, y, values })
-			setSelectedSquare(coord);
+			setSelectedSquare(square);
 		}
 	}
 
@@ -158,15 +191,7 @@ function YouWin() {
 	)
 }
 
-interface PopupProp {
-	data: {
-		x: number;
-		y: number;
-		values: number[];
-	}
-	handlePopupClick: any;
-	handleValueClick: any;
-}
+
 
 function Popup({ data, handlePopupClick, handleValueClick }: PopupProp) {
 
@@ -204,12 +229,12 @@ function Board({ rows, squares, handleSquareClick }: BoardProps) {
 	return (
 		<div>
 			<div className={styles.board}>
-				{rows.map((myRow: Row, index) => {
+				{rows.map((myRow: RowElement, index) => {
 					if (counter >= 3) {
 						counter = 0;
 					}
 					counter++;
-					return <Row
+					return <RowElement
 						row={myRow}
 						squares={squares}
 						topBorder={counter == 1}
@@ -231,7 +256,7 @@ interface RowProps {
 
 }
 
-function Row({ row, squares, topBorder, bottomBorder, handleSquareClick }: RowProps) {
+function RowElement({ row, squares, topBorder, bottomBorder, handleSquareClick }: RowProps) {
 
 	let counter = 0;
 
@@ -243,7 +268,7 @@ function Row({ row, squares, topBorder, bottomBorder, handleSquareClick }: RowPr
 				}
 				counter++;
 				return (
-					<Square
+					<SquareElement
 						coord={myCoord}
 						square={squares[myCoord]}
 						leftBorder={counter == 1}
@@ -270,7 +295,7 @@ interface SquareProps {
 	onSquareClick: any;
 }
 
-function Square({ coord, square, leftBorder, rightBorder, topBorder, bottomBorder, onSquareClick }: SquareProps) {
+function SquareElement({ coord, square, leftBorder, rightBorder, topBorder, bottomBorder, onSquareClick }: SquareProps) {
 
 	return (
 		<div

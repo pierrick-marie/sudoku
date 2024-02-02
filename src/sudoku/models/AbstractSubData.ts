@@ -4,15 +4,15 @@ const DEFAULT_VALUES: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 export class AbstractSubData {
 	
-	id: number;
-	squares: Square[];
+	public readonly id: number;
+	public squares: Square[];
 
-	constructor(id: number) {
+	public constructor(id: number) {
 		this.id = id;
 		this.squares = [];
 	}
 
-	getValues(): number[] {
+	public getValues(): number[] {
 		const values: number[] = [];
 
 		this.squares.forEach((square) => {
@@ -22,14 +22,14 @@ export class AbstractSubData {
 		return values;
 	}
 
-	isOk(): boolean {
+	public isOk(): boolean {
 
 		const values: number[] = this.getValues();
 
 		return 9 === values.length && this.checkValues(values); 
 	}
 
-	checkValues(values: number[]): boolean {
+	private checkValues(values: number[]): boolean {
 	
 		return DEFAULT_VALUES.every((value: number) => {
 			return values.includes(value);

@@ -9,21 +9,21 @@ export enum SquareStatus {
 
 export class Square {
 
-	coord: number;
-	value: number;
-	status: SquareStatus;
+	public readonly coord: number;
+	public value: number;
+	public status: SquareStatus;
 
-	constructor(coord: number) {
+	public constructor(coord: number) {
 		this.coord = coord;
 		this.value = EMPTY_SQUARE_VALUE;
 		this.status = SquareStatus.Default;
 	}
 
-	isEmpty(): boolean {
+	public isEmpty(): boolean {
 		return EMPTY_SQUARE_VALUE === this.value;
 	}
 
-	reset() {
+	public reset() {
 		this.value = EMPTY_SQUARE_VALUE;
 		this.status = SquareStatus.Default;
 	}

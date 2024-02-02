@@ -3,14 +3,19 @@ import { Column } from "./Column";
 import { Row } from "./Row";
 import { Square, SquareStatus } from "./Square";
 
+const DIFFICULTY_EASY: number = 20;
+const DIFFICULTY_MEDIUM: number = 30;
+const DIFFICULTY_HARD: number = 40;
+const DIFFICULTY_VERY_HARD: number = 50;
+
 export class Sudoku {
 
-	rows: Row[];
-	columns: Column[];
-	tiles: Tile[];
-	squares: Square[];
+	private readonly rows: Row[];
+	private readonly columns: Column[];
+	private readonly tiles: Tile[];
+	private readonly squares: Square[];
 
-	constructor() {
+	public constructor() {
 		this.rows = [];
 		this.columns = [];
 		this.tiles = [];
@@ -19,12 +24,59 @@ export class Sudoku {
 		this.init();
 	}
 
-	getRandomNumber (min: number, max: number): number {
+	/**
+	 * Creates a new valid and random game, then hide some squares
+	 * @param difficultyLevel the number of square to hide
+	 */
+	private newGameWithDifficulty(difficultyLevel: number) {
+		this.reset();
+		this.newGame();
+		this.hideSquares(difficultyLevel);
+	}
+
+	/**
+	 * Create a new game in easy mode : 20 squares are hided
+	 */
+	public newGameEasy() {
+		this.newGameWithDifficulty(DIFFICULTY_EASY);
+	}
+
+	/**
+	 * Create a new game in very medium mode : 30 squares are hided
+	 */
+	public newGameMedium() {
+		this.newGameWithDifficulty(DIFFICULTY_MEDIUM);
+	}
+
+	/**
+	 * Create a new game in hard mode : 40 squares are hided
+	   */
+	public newGameHard() {
+		this.newGameWithDifficulty(DIFFICULTY_HARD);
+	}
+
+	/**
+	 * Create a new game in very hard mode : 50 squares are hided
+	 */
+	public newGameVeryHard() {
+		this.newGameWithDifficulty(DIFFICULTY_VERY_HARD);
+	}
+
+	/**
+	 * Generate a random number
+	 * @param min min value of random number (included)
+	 * @param max max value of random number (excluded)
+	 * @returns the random number
+	 */
+	private getRandomNumber(min: number, max: number): number {
 		return Math.floor(Math.random() * max) + min;
 	}
 
-	init() {
-		for(let i = 0; i < 9; i++) {
+	/**
+	 * Setup empty rows, columns, tiles and squares
+	 */
+	private init() {
+		for (let i = 0; i < 9; i++) {
 			this.rows.push(new Row(i));
 			this.columns.push(new Column(i));
 			this.tiles.push(new Tile(i));
@@ -36,10 +88,10 @@ export class Sudoku {
 
 		let square: Square;
 
-		for(let coord = 0; coord < 9 * 9; coord++) {
-			
+		for (let coord = 0; coord < 9 * 9; coord++) {
+
 			square = new Square(coord)
-			
+
 			// Square
 			this.squares.push(square);
 
@@ -82,7 +134,10 @@ export class Sudoku {
 		}
 	}
 
-	newGame () {
+	/**
+	 * Create a new random and valid game
+	 */
+	protected newGame() {
 
 		let squares: Square[] = [];
 
@@ -99,16 +154,29 @@ export class Sudoku {
 					square.status = SquareStatus.Default;
 				});
 			}
+
+			if (9 === number && !this.isValid()) {
+				number = 0;
+				this.reset();
+			}
 		}
 	}
 
-	reset() {
+	/**
+	 * Reset all square of the game to default mod.
+	 */
+	private reset() {
 		this.squares.forEach((square) => {
 			square.reset();
 		});
 	}
 
-	searchNineAvailableSquare (value: number): Square[] {
+	/**
+	 * Searchs 9 distincts squares (one by row, one by column and one by tile).
+	 * @param value value of the square. It is only used to set the maximum number of try 
+	 * @returns 9 available squares if possible. Sometimes it is impossible to find 9 distincts squares !
+	 */
+	private searchNineAvailableSquare(value: number): Square[] {
 
 		// liste des square à renvoyer
 		const availableSquares: Square[] = [];
@@ -172,13 +240,17 @@ export class Sudoku {
 		return availableSquares;
 	}
 
-	hideSquares(numberOfSquareToHide: number) {
+	/**
+	 * Choose randomly N squares and set to default state
+	 * @param numberOfSquareToHide number of square to reset
+	 */
+	private hideSquares(numberOfSquareToHide: number) {
 
 		let randomSquare: Square = this.squares[this.getRandomNumber(0, 81)];
 		const hidedSquareList: Square[] = [];
 
-		for(let i = 0; i < numberOfSquareToHide; ) {
-			if(!hidedSquareList.includes(randomSquare)) {
+		for (let i = 0; i < numberOfSquareToHide;) {
+			if (!hidedSquareList.includes(randomSquare)) {
 				randomSquare.reset();
 				hidedSquareList.push(randomSquare);
 				i++;
@@ -187,45 +259,98 @@ export class Sudoku {
 		}
 	}
 
-	isValid(): boolean {
+	/**
+	 * Verify if all square have a value, and all values are correct
+	 * @returns true if the game is valid
+	 */
+	public isValid(): boolean {
 
 		return (
-			this.allSquareAreFilled() && 
-			this.allColumnsAreOk() && 
-			this.allRowsAreOk() && 
+			this.allSquareAreFilled() &&
+			this.allColumnsAreOk() &&
+			this.allRowsAreOk() &&
 			this.allTilesAreOk()
 		);
 	}
 
-	allSquareAreFilled(): boolean {
-		
+	/**
+	 * Verify whether all squares have a value different from the default value
+	 * @returns true if all square have a value
+	 */
+	private allSquareAreFilled(): boolean {
+
 		return this.squares.every((square) => {
-			return !square.isEmpty()}
+			return !square.isEmpty()
+		}
 		);
 	}
 
-	allTilesAreOk(): boolean {
+	/**
+	 * Verify whether all tilee of the game are valid
+	 * @returns true if all tiles are valid
+	 */
+	private allTilesAreOk(): boolean {
 
 		return this.tiles.every((tile: Tile) => {
 			return tile.isOk();
 		});
 	}
 
-	allRowsAreOk(): boolean {
+	/**
+	 * Verify whether all rows of the game are valid
+	 * @returns true if all rows are valid
+	 */
+	private allRowsAreOk(): boolean {
 
 		return this.rows.every((row: Row) => {
 			return row.isOk();
 		});
 	}
 
-	allColumnsAreOk(): boolean {
+	/**
+	 * Verify whether all columns of the game are valid
+	 * @returns true if all columns are valid
+	 */
+	private allColumnsAreOk(): boolean {
 
 		return this.columns.every((column: Column) => {
 			return column.isOk();
 		});
 	}
 
-	getPossibleValues(square: Square): number[] {
+	/**
+	 * Returns the row associated to a square
+	 * @param square the square to evaluate
+	 * @returns the row of the square
+	 */
+	private getRowFromSquare(square: Square): Row {
+		return this.rows[Math.trunc(square.coord / 9)];
+	}
+
+	/**
+	 * Return the column associated to a square
+	 * @param square the sqaure to evaluate
+	 * @returns the column of the square
+	 */
+	private getColumnFromSquare(square: Square): Column {
+		return this.columns[square.coord % 9];
+	}
+
+	/**
+	 * Returns the tile associated to a square
+	 * @param square the square to evaluate
+	 * @returns the tile of the square
+	 */
+	private getTileFromSquare(square: Square): Tile {
+		return this.tiles[Math.trunc(square.coord / (9 * 3)) * 3 + Math.trunc((square.coord % 9) / 3)];
+	}
+
+	/**
+	 * Search all possible value for a square. It check row, column and tile of the square
+	 * @param square the sqaure to evaluate
+	 * @returns the list of possible value
+	 */
+	public getPossibleValues(square: Square): number[] {
 
 		const defaultValues = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -233,22 +358,10 @@ export class Sudoku {
 		const columnValue = this.getColumnFromSquare(square).getValues();
 		const tileValue = this.getTileFromSquare(square).getValues();
 
-		const values = ( defaultValues.filter((element) => !rowValues.includes(element) && 
-			!columnValue.includes(element) && 
-			!tileValue.includes(element)) );
+		const values = (defaultValues.filter((element) => !rowValues.includes(element) &&
+			!columnValue.includes(element) &&
+			!tileValue.includes(element)));
 
 		return values;
-	}
-
-	getRowFromSquare (square: Square): Row {
-		return this.rows[Math.trunc(square.coord / 9)];
-	}
-
-	getColumnFromSquare (square: Square): Column {
-		return this.columns[square.coord % 9];
-	}
-
-	getTileFromSquare (square: Square): Tile {
-		return this.tiles[Math.trunc(square.coord / (9 * 3)) * 3 + Math.trunc((square.coord % 9) / 3)];
 	}
 }
