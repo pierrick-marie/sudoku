@@ -28,7 +28,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 21
-          registry-url: https://github.com/pierrick-marie/sudoku.git
+          registry-url: https://npm.pkg.github.com/
       - run: npm ci
       - run: npm run package
       - run: npm publish
