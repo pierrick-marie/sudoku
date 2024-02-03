@@ -1,16 +1,16 @@
 {
 	"version": "1.0.0",
-	"name": "sudoku",
+	"name": "@pierrick-marie/sudoku",
 	"description": "Sudoku game",
 	"author": {
-	  "name": "pierrick-marie"
+		"name": "pierrick-marie"
 	},
 	"repository": {
-	    "type": "git",
-	    "url": "https://github.com/pierrick-marie/sudoku"
+		"type": "git",
+		"url": "git+https://github.com/pierrick-marie/sudoku.git"
 	},
 	"publishConfig": {
-	  "registry": "https://npm.pkg.github.com/pierrick-marie"
+		"registry": "https://npm.pkg.github.com/pierrick-marie"
 	},
 	"keywords": [
 		"electron",
