@@ -1,7 +1,7 @@
 {
 	"version": "1.0.0",
 	"name": "@pierrick-marie/sudoku",
-	"description": "Sudoku game",
+	"description": "An Electron and React based udoku game",
 	"author": {
 		"name": "pierrick-marie"
 	},
@@ -23,18 +23,7 @@
 		"hot",
 		"reload"
 	],
-	"homepage": "https://github.com/electron-react-boilerplate/electron-react-boilerplate#readme",
-	"bugs": {
-		"url": "https://github.com/electron-react-boilerplate/electron-react-boilerplate/issues"
-	},
-	"license": "MIT",
-	"contributors": [
-		{
-			"name": "Amila Welihinda",
-			"email": "amilajack@gmail.com",
-			"url": "https://github.com/amilajack"
-		}
-	],
+	"license": "BSD-3-Clause license",
 	"main": "./src/main/main.ts",
 	"scripts": {
 		"build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
